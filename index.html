@@ -6,7 +6,6 @@
     <title>지니어스 게임 센터 - 온라인</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
     <style>
@@ -14,121 +13,218 @@
         
         :root { --main-red: #8b0000; --gold: #ffd700; --dark-bg: #1a1a1a; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Jua', sans-serif; }
-        body { background-color: var(--main-red); color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+        body { background-color: var(--main-red); color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
         
         .screen { display: none; width: 100%; max-width: 1200px; padding: 20px; flex-direction: column; align-items: center; }
         .active { display: flex; }
 
         .btn { padding: 12px 25px; font-size: 1.2rem; background: var(--gold); color: var(--main-red); border: none; border-radius: 8px; cursor: pointer; margin: 5px; transition: 0.2s; box-shadow: 2px 2px 5px rgba(0,0,0,0.3); }
         .btn:hover:not(:disabled) { background-color: #ffea00; transform: scale(1.05); }
-        .btn:disabled { background: #ccc; cursor: not-allowed; color: #666; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; color: #666; box-shadow: none; }
 
-        /* 로비 & 홈 */
-        .game-select-card { background: rgba(0,0,0,0.5); padding: 30px; border-radius: 20px; text-align: center; width: 350px; border: 2px solid var(--gold); cursor: pointer; transition: 0.3s; margin: 10px; }
+        /* 공통 UI */
+        .input-box { padding: 15px; font-size: 1.5rem; border-radius: 8px; border: none; text-align: center; width: 300px; margin-bottom: 15px; }
+        .game-select-card { background: rgba(0,0,0,0.5); padding: 30px; border-radius: 20px; text-align: center; width: 320px; border: 2px solid var(--gold); cursor: pointer; transition: 0.3s; margin: 10px; }
         .game-select-card:hover { background: rgba(255,215,0,0.2); transform: translateY(-10px); }
-        .room-list-container { width: 100%; max-width: 600px; background: rgba(0,0,0,0.4); padding: 20px; border-radius: 15px; margin-top: 20px; min-height: 200px; }
+        .room-list-container { width: 100%; max-width: 600px; background: rgba(0,0,0,0.4); padding: 20px; border-radius: 15px; margin-top: 20px; }
         .room-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 10px; }
+        .player-panel { background: rgba(0,0,0,0.6); padding: 15px; border-radius: 15px; display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 150px; }
+        .rule-section { background: rgba(0,0,0,0.7); padding: 25px; border-radius: 15px; text-align: left; max-width: 800px; width: 100%; margin-bottom: 20px; line-height: 1.6; font-size: 1.2rem; }
 
-        /* 십이장기 보드 */
-        .janggi-board { display: grid; grid-template-columns: repeat(3, 100px); grid-template-rows: repeat(4, 100px); gap: 5px; background: #d2b48c; padding: 10px; border: 5px solid #8b4513; border-radius: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-        .janggi-cell { width: 100px; height: 100px; background: #f5deb3; border: 1px solid #deb887; display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; }
+        /* 결합 */
+        .gh-grid { display: grid; grid-template-columns: repeat(3, 110px); grid-gap: 10px; background: #5c0000; padding: 15px; border-radius: 10px; border: 3px solid #3a0000; }
+        .gh-card { width: 110px; height: 110px; border: 3px solid #fff; border-radius: 8px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.1s; background: #000; }
+        .gh-card.selected { border-color: var(--gold); box-shadow: 0 0 15px var(--gold); transform: scale(1.05); }
+
+        /* 십이장기 (직관적 화살표 디자인) */
+        .janggi-board { display: grid; grid-template-columns: repeat(3, 90px); grid-template-rows: repeat(4, 90px); gap: 5px; background: #d2b48c; padding: 10px; border: 5px solid #8b4513; border-radius: 10px; }
+        .janggi-cell { width: 90px; height: 90px; background: #f5deb3; border: 1px solid #deb887; display: flex; justify-content: center; align-items: center; cursor: pointer; }
         .janggi-cell.selected { background: #fffacd; box-shadow: inset 0 0 15px var(--gold); }
-        .janggi-cell.movable::after { content: ''; width: 20px; height: 20px; background: rgba(0,255,0,0.3); border-radius: 50%; position: absolute; }
-
-        /* 기물 스타일 */
-        .piece { width: 80px; height: 80px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 2rem; font-weight: bold; border: 4px solid; cursor: pointer; transition: 0.2s; user-select: none; }
-        .piece.p1 { background: #fff; color: #d32f2f; border-color: #b71c1c; }
+        .piece { width: 76px; height: 76px; border-radius: 12px; display: flex; justify-content: center; align-items: center; border: 3px solid; cursor: pointer; transition: 0.2s; user-select: none; box-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
+        .piece.p1 { background: #fff; color: #b71c1c; border-color: #b71c1c; }
         .piece.p2 { background: #333; color: #fff; border-color: #000; transform: rotate(180deg); }
-        .piece.captured { width: 60px; height: 60px; font-size: 1.5rem; margin: 5px; transform: none !important; }
+        .piece.captured { width: 60px; height: 60px; margin: 5px; transform: none !important; font-size: 0.8rem; }
+        .arrow-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; width: 100%; height: 100%; padding: 2px; text-align: center; align-items: center; font-size: 14px; font-weight: bold; line-height: 1; }
+        .piece-name { font-size: 20px; color: inherit; }
 
-        /* 결합 보드 (기존 스타일 유지) */
-        .gh-grid { display: grid; grid-template-columns: repeat(3, 120px); grid-gap: 15px; background: #5c0000; padding: 20px; border-radius: 10px; border: 3px solid #3a0000; }
-        .gh-card { width: 120px; height: 120px; border: 3px solid #fff; border-radius: 8px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.1s; background: #000; }
-        .gh-card.selected { border-color: var(--gold); box-shadow: 0 0 15px var(--gold); }
+        /* 러시아 장기 */
+        .rg-board { display: grid; grid-template-columns: repeat(3, 110px); grid-template-rows: repeat(3, 110px); gap: 10px; background: #4caf50; padding: 15px; border: 5px solid #2e7d32; border-radius: 10px; }
+        .rg-cell { width: 110px; height: 110px; background: #a5d6a7; border-radius: 8px; display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; }
+        .rg-cell.selected { box-shadow: inset 0 0 0 5px var(--gold); }
+        .rg-piece { border-radius: 50%; display: flex; justify-content: center; align-items: center; position: absolute; transition: 0.2s; box-shadow: 2px 2px 5px rgba(0,0,0,0.5); border: 2px solid #fff; }
+        .rg-piece.p1 { background: #f44336; } .rg-piece.p2 { background: #2196F3; }
+        .rg-size-1 { width: 35px; height: 35px; } .rg-size-2 { width: 65px; height: 65px; } .rg-size-3 { width: 95px; height: 95px; }
+        .rg-hand { display: flex; flex-wrap: wrap; gap: 8px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; min-height: 100px; width: 100%; justify-content: center; align-items: center; }
+        .rg-hand-item { position: relative; cursor: pointer; width: 45px; height: 45px; display:flex; justify-content:center; align-items:center; }
+        .rg-hand-item.selected .rg-piece { border-color: var(--gold); transform: scale(1.1); box-shadow: 0 0 10px var(--gold); }
 
-        .hand-container { display: flex; flex-wrap: wrap; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; min-height: 80px; width: 320px; margin-top: 10px; }
+        /* 기타 */
         #timer-bar { width: 100%; max-width: 600px; height: 15px; background: #333; border-radius: 10px; overflow: hidden; margin: 10px 0; }
         #timer-fill { width: 100%; height: 100%; background: #4CAF50; transition: width 1s linear; }
+        .shape-circle { width: 60px; height: 60px; border-radius: 50%; }
+        .shape-square { width: 60px; height: 60px; }
+        .shape-triangle { width: 0; height: 0; border-left: 30px solid transparent; border-right: 30px solid transparent; border-bottom: 60px solid; }
+        .bg-black { background-color: #111; } .bg-white { background-color: #eee; } .bg-gray { background-color: #777; }
     </style>
 </head>
 <body>
 
+    <!-- 1. 로그인 화면 -->
     <div id="screen-login" class="screen active" style="justify-content: center; height: 100vh;">
-        <h1 style="font-size: 4rem; color: var(--gold); margin-bottom: 30px;">THE GENIUS</h1>
-        <input type="text" id="nickname-input" style="padding:15px; font-size:1.5rem; border-radius:10px; border:none; text-align:center;" placeholder="닉네임 입력">
-        <button class="btn" style="margin-top:20px; padding:15px 50px;" onclick="initUser()">입장</button>
+        <h1 style="font-size: 4rem; color: var(--gold); margin-bottom: 20px;">THE GENIUS ONLINE</h1>
+        <p style="margin-bottom: 30px; font-size: 1.2rem; text-align: center;">닉네임과 4자리 비밀번호(PIN)를 입력하세요.<br>처음 오셨다면 자동으로 계정이 생성되어 전적이 기록됩니다.</p>
+        
+        <input type="text" id="login-id" class="input-box" placeholder="닉네임 입력 (최대 8자)" maxlength="8">
+        <input type="password" id="login-pw" class="input-box" placeholder="비밀번호 숫자 4자리" maxlength="4" onkeypress="if(event.keyCode==13) login()">
+        
+        <button class="btn" style="padding:15px 50px; font-size: 1.5rem;" onclick="login()">접속하기</button>
+        <button onclick="adminLogin()" style="margin-top: 30px; background:none; border:none; color:#888; text-decoration:underline; cursor:pointer;">관리자 전용 로그인</button>
     </div>
 
+    <!-- 2. 관리자 화면 -->
+    <div id="screen-admin" class="screen">
+        <h1 style="color:var(--gold); margin-bottom: 20px;">🛡️ 시스템 관리자</h1>
+        <div class="rule-section" style="max-width: 600px;">
+            <h3 style="margin-bottom: 15px;">유저 목록 및 관리</h3>
+            <div id="admin-user-list" style="max-height: 400px; overflow-y: auto;"></div>
+        </div>
+        <button class="btn" onclick="showScreen('screen-login')">로그아웃</button>
+    </div>
+
+    <!-- 3. 게임 선택 화면 -->
     <div id="screen-home" class="screen" style="justify-content: center; height: 100vh;">
-        <h1 style="margin-bottom: 40px; font-size: 3rem;">게임 선택</h1>
-        <div style="display: flex;">
+        <div id="user-welcome" style="margin-bottom: 10px; font-size: 1.5rem; color: #ccc;"></div>
+        <h1 style="margin-bottom: 30px; font-size: 3.5rem; color: var(--gold);">어떤 게임을 하시겠습니까?</h1>
+        <div style="display: flex; flex-wrap: wrap; justify-content: center;">
             <div class="game-select-card" onclick="goToLobby('GH')">
-                <h2 style="font-size: 2.5rem;">결! 합!</h2>
-                <p>그림 속의 규칙을 찾는 논리 게임</p>
+                <h2 style="font-size: 2.5rem; color:#4CAF50;">결! 합!</h2>
+                <p style="margin-top: 10px;">그림의 패턴을 찾는 두뇌 논리 게임</p>
             </div>
             <div class="game-select-card" onclick="goToLobby('TJ')">
-                <h2 style="font-size: 2.5rem;">십이장기</h2>
-                <p>4x3 칸에서 벌어지는 치열한 수싸움</p>
+                <h2 style="font-size: 2.5rem; color:#2196F3;">십이장기</h2>
+                <p style="margin-top: 10px;">4x3 칸에서 벌어지는 치열한 수싸움</p>
+            </div>
+            <div class="game-select-card" onclick="goToLobby('RG')">
+                <h2 style="font-size: 2.5rem; color:#ff9800;">러시아 장기</h2>
+                <p style="margin-top: 10px;">큰 말이 작은 말을 잡아먹는 틱택토</p>
             </div>
         </div>
+        <button class="btn" onclick="logout()" style="margin-top:30px; background:#555; color:#fff;">계정 로그아웃</button>
     </div>
 
+    <!-- 4. 게임별 로비 화면 -->
     <div id="screen-lobby" class="screen">
         <h1 id="lobby-title" style="font-size: 3rem; color: var(--gold);">로비</h1>
-        <div style="margin: 20px 0;">
-            <button class="btn" onclick="createRoom()">+ 새 방 만들기</button>
-            <button class="btn" onclick="showScreen('screen-home')" style="background:#555; color:#fff;">뒤로가기</button>
+        
+        <div style="margin: 20px 0; display:flex; gap:10px;">
+            <button class="btn" onclick="createRoom(false)" style="background:#4CAF50; color:#fff;">+ 유저와 대결 (방 만들기)</button>
+            <button class="btn" onclick="createRoom(true)" style="background:#2196F3; color:#fff;">🤖 컴퓨터(AI)와 연습하기</button>
         </div>
+        
         <div class="room-list-container">
-            <h3 style="margin-bottom:15px;">현재 대기 중인 방</h3>
+            <h3 style="margin-bottom:15px; color:var(--gold);">대기 중인 플레이어 방</h3>
             <div id="room-list-content"></div>
         </div>
+
+        <button class="btn" onclick="showScreen('screen-rules')" style="margin-top:20px; background:#ff9800; color:#fff; padding: 10px 40px;">📖 이 게임의 자세한 규칙 보기</button>
+        <button class="btn" onclick="showScreen('screen-home')" style="margin-top:10px; background:#555; color:#fff;">뒤로가기</button>
     </div>
 
-    <div id="screen-game-gh" class="screen">
-        <h2 id="gh-round-title">ROUND 1 / 5</h2>
-        <div id="timer-bar"><div id="timer-fill-gh"></div></div>
-        <div id="game-status-gh" style="font-size:1.5rem; margin-bottom:10px;">상대 대기 중...</div>
-        <div style="display:flex; gap:30px; align-items:center;">
-            <div class="player-panel">
-                <div id="gh-p1-name" style="color:#4CAF50">P1</div>
-                <div id="gh-p1-score" style="font-size:3rem;">0</div>
-            </div>
-            <div class="gh-grid" id="gh-board"></div>
-            <div class="player-panel">
-                <div id="gh-p2-name" style="color:#2196F3">P2</div>
-                <div id="gh-p2-score" style="font-size:3rem;">0</div>
-            </div>
+    <!-- 5. 게임 설명서 화면 -->
+    <div id="screen-rules" class="screen">
+        <h1 style="font-size: 3rem; color: var(--gold); margin-bottom: 20px;">📖 게임 설명서</h1>
+        
+        <div id="rule-content-GH" class="rule-section" style="display:none;">
+            <h2 style="color:#4CAF50; margin-bottom: 10px;">결! 합!</h2>
+            <p>9장의 카드 중 3장을 골라 <b>'모양, 색상, 배경색'이 각각 모두 같거나 모두 다른 조합(합)</b>을 찾습니다.<br>
+            - <b>합! (+1점)</b>: 올바른 3장을 찾은 경우<br>
+            - <b>결! (+3점)</b>: 더 이상 판에 '합'이 없을 때 외침<br>
+            - 틀리거나 시간초과 시 -1점 및 상대에게 기회 턴 넘어감</p>
         </div>
-        <div style="margin-top:20px;">
+
+        <div id="rule-content-TJ" class="rule-section" style="display:none;">
+            <h2 style="color:#2196F3; margin-bottom: 10px;">십이장기 (화살표 디자인 적용)</h2>
+            <p>기물에 그려진 <b>화살표 방향으로만 1칸씩 이동</b>할 수 있습니다.<br>
+            - <b>장(將):</b> 8방향 모든 곳으로 이동 (잡히면 패배)<br>
+            - <b>상(象):</b> 대각선 4방향으로 이동<br>
+            - <b>자(卒):</b> 무조건 앞으로 1칸. 상대편 끝줄에 닿으면 <b>후(侯)</b>로 변신!<br>
+            - <b>후(侯):</b> 대각선 뒤쪽 2곳을 제외한 6방향 이동<br><br>
+            <b>[승리 조건]</b> 상대방의 '장'을 잡거나, 내 '장'이 상대방 진영 끝줄에 무사히 도달하면 승리합니다.<br>
+            <b>[포로 룰]</b> 상대의 말을 잡으면 내 창고로 오며, 내 턴에 빈칸 아무곳에나 부활시킬 수 있습니다.</p>
+        </div>
+
+        <div id="rule-content-RG" class="rule-section" style="display:none;">
+            <h2 style="color:#ff9800; margin-bottom: 10px;">러시아 장기 (마트료시카 틱택토)</h2>
+            <p>3x3 판에서 먼저 <b>가로, 세로, 대각선 중 한 줄을 내 색깔로 채우면 승리</b>합니다.<br>
+            - 각 플레이어는 <b>대(2개), 중(2개), 소(2개)</b> 총 6개의 말을 가집니다.<br>
+            - 내 턴에 빈 칸에 말을 놓거나, 이미 판에 있는 내 말을 이동시킬 수 있습니다.<br>
+            - <b>[잡아먹기 룰]</b> 판에 있는 말보다 <b>더 큰 말</b>을 그 위에 덮어씌울 수 있습니다! (내 말, 상대 말 모두 가능)<br>
+            - 덮어씌워진 말을 다시 다른 곳으로 이동시키면 밑에 있던 말이 부활하여 줄이 완성될 수도 있으니 주의하세요!</p>
+        </div>
+
+        <button class="btn" style="padding: 15px 40px; font-size: 1.5rem;" onclick="showScreen('screen-lobby')">이해했습니다! 로비로</button>
+    </div>
+
+    <!-- 6. 결합 플레이 화면 -->
+    <div id="screen-game-gh" class="screen">
+        <h2 id="gh-round-title" style="color:var(--gold); font-size:2rem;">ROUND 1 / 5</h2>
+        <div id="timer-bar"><div id="timer-fill-gh"></div></div>
+        <div id="game-status-gh" style="font-size:1.5rem; margin-bottom:10px;"></div>
+        <div style="display:flex; gap:30px; align-items:center;">
+            <div class="player-panel"><div id="gh-p1-name" style="color:#4CAF50; font-size:1.2rem;">P1</div><div id="gh-p1-score" style="font-size:3rem; color:var(--gold);">0</div></div>
+            <div style="display:flex; flex-direction:column; align-items:center;">
+                <div class="gh-grid" id="gh-board"></div>
+                <div style="margin-top: 15px;">찾은 합: <span id="found-haps-count" style="color:#ffeb3b">0</span>개</div>
+            </div>
+            <div class="player-panel"><div id="gh-p2-name" style="color:#2196F3; font-size:1.2rem;">P2</div><div id="gh-p2-score" style="font-size:3rem; color:var(--gold);">0</div></div>
+        </div>
+        <div style="margin-top:20px; display:flex; gap:10px;">
+            <button class="btn" id="btn-gh-start" style="display:none; background:#ff9800; color:#fff;" onclick="startGame()">🚀 시작하기</button>
             <button class="btn" id="btn-gh-hap" onclick="callHap()">합!</button>
             <button class="btn" id="btn-gh-gyul" onclick="callGyul()">결!</button>
-            <button class="btn" id="btn-gh-start" style="display:none; background:#ff9800; color:#fff;" onclick="startGameGH()">게임 시작</button>
         </div>
     </div>
 
+    <!-- 7. 십이장기 플레이 화면 -->
     <div id="screen-game-tj" class="screen">
-        <h2 style="color:var(--gold); font-size:2rem; margin-bottom:10px;">십이장기 (Twelve Janggi)</h2>
-        <div id="game-status-tj" style="font-size:1.2rem; margin-bottom:10px;">상대를 기다려주세요</div>
-        
-        <div style="display:flex; gap:40px; align-items:flex-start;">
-            <div style="display:flex; flex-direction:column; align-items:center;">
-                <div id="tj-p2-name" style="font-size:1.5rem; color:#333; background:#fff; padding:5px 15px; border-radius:5px;">P2</div>
-                <div class="hand-container" id="hand-p2"></div>
+        <h2 style="color:var(--gold); font-size:2rem; margin-bottom:5px;">십이장기</h2>
+        <div id="game-status-tj" style="font-size:1.5rem; margin-bottom:15px;"></div>
+        <div style="display:flex; gap:30px; align-items:flex-start;">
+            <div style="display:flex; flex-direction:column; align-items:center; width:120px;">
+                <div id="tj-p2-name" style="background:#2196F3; padding:5px 15px; border-radius:5px; margin-bottom:10px; width:100%; text-align:center;">P2</div>
+                <div id="hand-p2-tj" style="display:flex; flex-wrap:wrap; gap:5px; background:rgba(0,0,0,0.3); padding:10px; border-radius:10px; min-height:80px; width:100%; justify-content:center;"></div>
             </div>
-
             <div class="janggi-board" id="tj-board"></div>
-
-            <div style="display:flex; flex-direction:column; align-items:center;">
-                <div id="tj-p1-name" style="font-size:1.5rem; color:#fff; background:#d32f2f; padding:5px 15px; border-radius:5px;">P1</div>
-                <div class="hand-container" id="hand-p1"></div>
+            <div style="display:flex; flex-direction:column; align-items:center; width:120px;">
+                <div id="tj-p1-name" style="background:#f44336; padding:5px 15px; border-radius:5px; margin-bottom:10px; width:100%; text-align:center;">P1</div>
+                <div id="hand-p1-tj" style="display:flex; flex-wrap:wrap; gap:5px; background:rgba(0,0,0,0.3); padding:10px; border-radius:10px; min-height:80px; width:100%; justify-content:center;"></div>
             </div>
         </div>
-        <button class="btn" id="btn-tj-start" style="display:none; margin-top:20px; background:#ff9800; color:#fff;" onclick="startGameTJ()">게임 시작</button>
+        <button class="btn" id="btn-tj-start" style="display:none; margin-top:20px; background:#ff9800; color:#fff;" onclick="startGame()">🚀 시작하기</button>
+    </div>
+
+    <!-- 8. 러시아 장기 플레이 화면 -->
+    <div id="screen-game-rg" class="screen">
+        <h2 style="color:var(--gold); font-size:2rem; margin-bottom:5px;">러시아 장기</h2>
+        <div id="game-status-rg" style="font-size:1.5rem; margin-bottom:15px;"></div>
+        <div style="display:flex; gap:30px; align-items:center;">
+            <div style="display:flex; flex-direction:column; align-items:center; width:150px;">
+                <div id="rg-p1-name" style="color:#f44336; margin-bottom:10px; font-size:1.2rem;">P1 (RED)</div>
+                <div class="rg-hand" id="rg-hand-p1"></div>
+            </div>
+            <div class="rg-board" id="rg-board"></div>
+            <div style="display:flex; flex-direction:column; align-items:center; width:150px;">
+                <div id="rg-p2-name" style="color:#2196F3; margin-bottom:10px; font-size:1.2rem;">P2 (BLUE)</div>
+                <div class="rg-hand" id="rg-hand-p2"></div>
+            </div>
+        </div>
+        <button class="btn" id="btn-rg-start" style="display:none; margin-top:20px; background:#ff9800; color:#fff;" onclick="startGame()">🚀 시작하기</button>
     </div>
 
 <script>
-    // --- Firebase 설정 ---
+    // ==========================================
+    // 시스템 1: 파이어베이스 및 로그인
+    // ==========================================
     const firebaseConfig = {
       apiKey: "AIzaSyD1y7hpto_WOkwB_ia35epFfe3UjLbetCw",
       authDomain: "game-36d00.firebaseapp.com",
@@ -140,73 +236,124 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const auth = firebase.auth();
 
-    let myUid, myName, currentGameType, currentRoomId;
-    let selectedPiece = null; // {r, c, type, owner, fromHand}
+    let myUid = null; let myName = null;
+    let currentGameType = null; let currentRoomId = null;
+    let selectedCards = []; let selectedPiece = null;
+    let timerInterval = null; let isBotThinking = false;
 
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
+        // 룰 화면 표시 제어
+        if(id === 'screen-rules') {
+            document.querySelectorAll('[id^="rule-content-"]').forEach(el => el.style.display = 'none');
+            document.getElementById('rule-content-' + currentGameType).style.display = 'block';
+        }
     }
 
-    function initUser() {
-        const input = document.getElementById('nickname-input').value.trim();
-        if(!input) return alert("닉네임을 입력하세요!");
-        myName = input;
-        auth.signInAnonymously().then(res => {
-            myUid = res.user.uid;
-            showScreen('screen-home');
+    function login() {
+        const id = document.getElementById('login-id').value.trim();
+        const pw = document.getElementById('login-pw').value.trim();
+        if(!id || !pw) return alert("닉네임과 비밀번호를 모두 입력하세요.");
+        if(pw.length !== 4 || isNaN(pw)) return alert("비밀번호는 숫자 4자리여야 합니다.");
+
+        db.ref('users/' + id).once('value', snap => {
+            if (snap.exists()) {
+                if (snap.val().pin !== pw) return alert("비밀번호가 일치하지 않습니다!");
+                myUid = id; myName = id; loginSuccess();
+            } else {
+                db.ref('users/' + id).set({ pin: pw, wins: 0, losses: 0 });
+                myUid = id; myName = id; alert("신규 계정이 생성되었습니다."); loginSuccess();
+            }
         });
     }
 
+    function loginSuccess() {
+        document.getElementById('user-welcome').innerText = `${myName}님, 환영합니다!`;
+        showScreen('screen-home');
+    }
+
+    function logout() {
+        myUid = null; myName = null;
+        document.getElementById('login-pw').value = '';
+        showScreen('screen-login');
+    }
+
+    // ==========================================
+    // 시스템 2: 관리자 페이지
+    // ==========================================
+    function adminLogin() {
+        const pw = prompt("관리자 비밀번호를 입력하세요.");
+        if(pw === "1219") {
+            showScreen('screen-admin');
+            db.ref('users').on('value', snap => {
+                const list = document.getElementById('admin-user-list');
+                list.innerHTML = "";
+                snap.forEach(child => {
+                    const u = child.val();
+                    list.innerHTML += `<div class="user-item">
+                        <div><strong style="color:var(--gold);">${child.key}</strong> (PIN: ${u.pin}) | ${u.wins}승 ${u.losses}패</div>
+                        <div>
+                            <button class="btn" style="padding:5px 10px; font-size:1rem;" onclick="db.ref('users/${child.key}').update({pin:'0000'})">PW 초기화</button>
+                            <button class="btn" style="padding:5px 10px; font-size:1rem; background:#f44336;" onclick="if(confirm('삭제?')) db.ref('users/${child.key}').remove()">삭제</button>
+                        </div>
+                    </div>`;
+                });
+            });
+        } else if(pw) alert("비밀번호 오류");
+    }
+
+    // ==========================================
+    // 시스템 3: 방 관리 및 봇(컴퓨터)
+    // ==========================================
     function goToLobby(type) {
         currentGameType = type;
-        document.getElementById('lobby-title').innerText = type === 'GH' ? "결! 합! 로비" : "십이장기 로비";
+        document.getElementById('lobby-title').innerText = {GH:'결! 합!', TJ:'십이장기', RG:'러시아 장기'}[type] + " 로비";
         showScreen('screen-lobby');
-        listenRooms();
-    }
-
-    function listenRooms() {
-        db.ref('rooms/' + currentGameType).on('value', snap => {
+        
+        db.ref('rooms/' + type).on('value', snap => {
             const list = document.getElementById('room-list-content');
-            list.innerHTML = "";
+            list.innerHTML = ""; let hasRooms = false;
             snap.forEach(child => {
-                const room = child.val();
-                if(room.status === 'WAITING') {
-                    list.innerHTML += `<div class="room-item">
-                        <span><b>${room.hostName}</b>님의 방</span>
-                        <button class="btn" onclick="joinRoom('${child.key}')">입장</button>
-                    </div>`;
+                const r = child.val();
+                if(r.status === 'WAITING' && r.hostName) {
+                    hasRooms = true;
+                    list.innerHTML += `<div class="room-item"><span><b>${r.hostName}</b>님의 방</span><button class="btn" onclick="joinRoom('${child.key}')">입장</button></div>`;
                 }
             });
+            if(!hasRooms) list.innerHTML = "<p style='color:#ccc;'>대기 중인 방이 없습니다.</p>";
         });
     }
 
-    function createRoom() {
+    function createRoom(isPractice) {
         const roomId = Math.random().toString(36).substr(2, 6).toUpperCase();
-        const roomData = {
-            hostUid: myUid, hostName: myName, status: 'WAITING', p1: {uid: myUid, name: myName, score: 0}
-        };
-        if(currentGameType === 'TJ') {
+        const roomData = { hostName: myName, status: 'WAITING', isPractice: isPractice, p1: {uid: myUid, name: myName, score: 0} };
+        
+        if(isPractice) roomData.p2 = {uid: 'BOT', name: '🤖 컴퓨터', score: 0};
+
+        if(currentGameType === 'GH') {
+            roomData.round = 1; roomData.board = generateGHBoard(); roomData.foundHaps = [];
+        } else if(currentGameType === 'TJ') {
+            roomData.turn = 1; roomData.p1Hand = []; roomData.p2Hand = [];
             roomData.board = [
                 [{t:'sang', o:2}, {t:'jang', o:2}, {t:'sang', o:2}],
-                [null, {t:'ja', o:2}, null],
-                [null, {t:'ja', o:1}, null],
+                [null, {t:'ja', o:2}, null], [null, {t:'ja', o:1}, null],
                 [{t:'sang', o:1}, {t:'jang', o:1}, {t:'sang', o:1}]
             ];
-            roomData.turn = 1; roomData.p1Hand = []; roomData.p2Hand = [];
-        } else {
-            roomData.round = 1; roomData.board = generateGHBoard(); roomData.foundHaps = [];
+        } else if(currentGameType === 'RG') {
+            roomData.turn = 1; roomData.board = Array.from({length: 9}, () => []);
+            roomData.p1Hand = [1,1,2,2,3,3]; roomData.p2Hand = [1,1,2,2,3,3];
         }
+
         db.ref(`rooms/${currentGameType}/${roomId}`).set(roomData);
         joinRoomLogic(roomId);
     }
 
     function joinRoom(id) {
         db.ref(`rooms/${currentGameType}/${id}`).once('value', snap => {
-            const room = snap.val();
-            if(!room.p2 && room.p1.uid !== myUid) {
+            const r = snap.val();
+            if(!r.p2 && r.p1.uid !== myUid) {
                 db.ref(`rooms/${currentGameType}/${id}/p2`).set({uid: myUid, name: myName, score: 0});
             }
             joinRoomLogic(id);
@@ -214,215 +361,401 @@
     }
 
     function joinRoomLogic(id) {
-        currentRoomId = id;
-        showScreen(currentGameType === 'GH' ? 'screen-game-gh' : 'screen-game-tj');
+        currentRoomId = id; selectedCards = []; selectedPiece = null; stopTimerGH();
+        showScreen(`screen-game-${currentGameType.toLowerCase()}`);
+        
         db.ref(`rooms/${currentGameType}/${id}`).on('value', snap => {
             const room = snap.val();
-            if(!room) return;
-            currentGameType === 'GH' ? renderGH(room) : renderTJ(room);
+            if(!room) { alert("방이 사라졌습니다."); showScreen('screen-lobby'); return; }
+            if(currentGameType === 'GH') renderGH(room);
+            if(currentGameType === 'TJ') renderTJ(room);
+            if(currentGameType === 'RG') renderRG(room);
+
+            // 봇 턴 체크
+            if(room.status === 'PLAYING' && room.isPractice && !isBotThinking) {
+                if(currentGameType === 'GH' && !room.hapTurn) triggerBotGH(room);
+                if(currentGameType === 'TJ' && room.turn === 2) triggerBotTJ(room);
+                if(currentGameType === 'RG' && room.turn === 2) triggerBotRG(room);
+            }
         });
     }
 
-    // --- 십이장기 게임 로직 ---
+    function startGame() { db.ref(`rooms/${currentGameType}/${currentRoomId}`).update({status: 'PLAYING'}); }
+
+    function endGame(winnerUid, room) {
+        if(room.status === 'FINISHED') return;
+        db.ref(`rooms/${currentGameType}/${currentRoomId}`).update({status: 'FINISHED'});
+        if(!room.isPractice && winnerUid === myUid) {
+            db.ref('users/' + myUid).once('value', snap => db.ref('users/' + myUid).update({wins: snap.val().wins + 1}));
+            if(room.p2.uid !== myUid) db.ref('users/' + room.p2.uid).once('value', snap => db.ref('users/' + room.p2.uid).update({losses: snap.val().losses + 1}));
+            else db.ref('users/' + room.p1.uid).once('value', snap => db.ref('users/' + room.p1.uid).update({losses: snap.val().losses + 1}));
+        }
+        setTimeout(() => { alert("게임 종료!"); db.ref(`rooms/${currentGameType}/${currentRoomId}`).remove(); showScreen('screen-lobby'); }, 3000);
+    }
+
+    // ==========================================
+    // 봇(AI) 로직
+    // ==========================================
+    function triggerBotGH(room) {
+        isBotThinking = true;
+        setTimeout(() => {
+            if(room.status !== 'PLAYING') { isBotThinking = false; return; }
+            const fHaps = room.foundHaps || []; let found = null;
+            for(let i=0;i<7;i++) for(let j=i+1;j<8;j++) for(let k=j+1;k<9;k++) {
+                const c=[room.board[i],room.board[j],room.board[k]];
+                if(['s','c','b'].every(a=>(c[0][a]===c[1][a]&&c[1][a]===c[2][a])||(c[0][a]!==c[1][a]&&c[0][a]!==c[2][a]&&c[1][a]!==c[2][a])) && !fHaps.includes(`${i},${j},${k}`)) {
+                    found = [i,j,k]; break;
+                }
+            }
+            if(found) {
+                db.ref(`rooms/GH/${currentRoomId}/p2/score`).set(room.p2.score + 1);
+                fHaps.push(found.join(','));
+                db.ref(`rooms/GH/${currentRoomId}`).update({foundHaps: fHaps});
+            } else {
+                db.ref(`rooms/GH/${currentRoomId}/p2/score`).set(room.p2.score + 3);
+                if(room.round >= 5) endGame(room.p1.score > room.p2.score ? room.p1.uid : room.p2.uid, room);
+                else db.ref(`rooms/GH/${currentRoomId}`).update({round: room.round+1, board: generateGHBoard(), foundHaps: []});
+            }
+            isBotThinking = false;
+        }, 12000); // 봇은 12초마다 한번씩 작동
+    }
+
+    function triggerBotTJ(room) {
+        isBotThinking = true;
+        setTimeout(() => {
+            let moves = [];
+            for(let r=0; r<4; r++) for(let c=0; c<3; c++) {
+                const p = room.board[r][c];
+                if(p && p.o === 2) {
+                    for(let tr=0; tr<4; tr++) for(let tc=0; tc<3; tc++) {
+                        if(isValidTJMove(r, c, tr, tc, p.t, 2)) {
+                            const target = room.board[tr][tc];
+                            if(!target || target.o === 1) moves.push({type: 'move', sr: r, sc: c, tr: tr, tc: tc, t: p.t, tar: target});
+                        }
+                    }
+                }
+            }
+            if(room.p2Hand) room.p2Hand.forEach((t, i) => {
+                for(let r=0; r<4; r++) for(let c=0; c<3; c++) if(!room.board[r][c]) moves.push({type: 'drop', tr: r, tc: c, t: t, hIdx: i});
+            });
+
+            if(moves.length > 0) {
+                let move = moves.find(m => m.tar && m.tar.t === 'jang') || moves[Math.floor(Math.random() * moves.length)];
+                let nb = JSON.parse(JSON.stringify(room.board)), nH = [...(room.p2Hand || [])];
+                
+                if(move.type === 'move') {
+                    if(move.tar && move.tar.t === 'jang') return endGame('BOT', room); // 봇 승리
+                    let mt = move.t; if(mt === 'ja' && move.tr === 3) mt = 'hu';
+                    nb[move.tr][move.tc] = {t: mt, o: 2}; nb[move.sr][move.sc] = null;
+                } else {
+                    nb[move.tr][move.tc] = {t: move.t, o: 2}; nH.splice(move.hIdx, 1);
+                }
+                db.ref(`rooms/TJ/${currentRoomId}`).update({board: nb, p2Hand: nH, turn: 1});
+            }
+            isBotThinking = false;
+        }, 2000);
+    }
+
+    function triggerBotRG(room) {
+        isBotThinking = true;
+        setTimeout(() => {
+            let moves = [];
+            for(let i=0; i<9; i++) {
+                const stack = room.board[i] || [];
+                const top = stack.length > 0 ? stack[stack.length-1] : null;
+                if(top && top.o === 2) {
+                    for(let j=0; j<9; j++) {
+                        const targetStack = room.board[j] || [];
+                        const targetTop = targetStack.length > 0 ? targetStack[targetStack.length-1] : null;
+                        if(!targetTop || targetTop.s < top.s) moves.push({type:'board', sr: i, tr: j, s: top.s});
+                    }
+                }
+            }
+            if(room.p2Hand) room.p2Hand.forEach((s, i) => {
+                for(let j=0; j<9; j++) {
+                    const targetStack = room.board[j] || [];
+                    const targetTop = targetStack.length > 0 ? targetStack[targetStack.length-1] : null;
+                    if(!targetTop || targetTop.s < s) moves.push({type:'hand', tr: j, s: s, hIdx: i});
+                }
+            });
+
+            if(moves.length > 0) {
+                let move = moves[Math.floor(Math.random() * moves.length)];
+                let nb = JSON.parse(JSON.stringify(room.board));
+                let nH = [...(room.p2Hand || [])];
+
+                nb[move.tr] = nb[move.tr] || [];
+                nb[move.tr].push({o: 2, s: move.s});
+                if(move.type === 'hand') nH.splice(move.hIdx, 1);
+                else nb[move.sr].pop();
+
+                if(checkRGWin(nb) > 0) return endGame('BOT', room);
+                db.ref(`rooms/RG/${currentRoomId}`).update({board: nb, p2Hand: nH, turn: 1});
+            }
+            isBotThinking = false;
+        }, 2000);
+    }
+
+
+    // ==========================================
+    // 게임별 렌더링 및 조작 로직 (십이장기, 러시아장기, 결합)
+    // ==========================================
+
+    // [십이장기 화살표 기물 반환]
+    function getTJHtml(t) {
+        const grid = `<div class="arrow-grid">`;
+        if(t==='jang') return grid + `<span>↖</span><span>↑</span><span>↗</span><span>←</span><span class="piece-name">장</span><span>→</span><span>↙</span><span>↓</span><span>↘</span></div>`;
+        if(t==='sang') return grid + `<span>↖</span><span></span><span>↗</span><span></span><span class="piece-name">상</span><span></span><span>↙</span><span></span><span>↘</span></div>`;
+        if(t==='ja')   return grid + `<span></span><span>↑</span><span></span><span></span><span class="piece-name">자</span><span></span><span></span><span></span><span></span></div>`;
+        if(t==='hu')   return grid + `<span>↖</span><span>↑</span><span>↗</span><span>←</span><span class="piece-name">후</span><span>→</span><span></span><span>↓</span><span></span></div>`;
+    }
+
     function renderTJ(room) {
-        const boardEl = document.getElementById('tj-board');
-        boardEl.innerHTML = "";
+        const boardEl = document.getElementById('tj-board'); boardEl.innerHTML = "";
         room.board.forEach((row, r) => {
             row.forEach((cell, c) => {
-                const div = document.createElement('div');
-                div.className = 'janggi-cell';
+                const div = document.createElement('div'); div.className = 'janggi-cell';
                 if(selectedPiece && selectedPiece.r === r && selectedPiece.c === c) div.classList.add('selected');
                 if(cell) {
-                    const p = document.createElement('div');
-                    p.className = `piece p${cell.o}`;
-                    p.innerText = getPieceSymbol(cell.t);
-                    div.appendChild(p);
+                    const p = document.createElement('div'); p.className = `piece p${cell.o}`;
+                    p.innerHTML = getTJHtml(cell.t); div.appendChild(p);
                 }
-                div.onclick = () => handleTJClick(r, c, room);
-                boardEl.appendChild(div);
+                div.onclick = () => handleTJClick(r, c, room); boardEl.appendChild(div);
             });
         });
 
-        // 창고 렌더링
-        renderHand('hand-p1', room.p1Hand || [], 1, room);
-        renderHand('hand-p2', room.p2Hand || [], 2, room);
-
+        const myNum = room.p1.uid === myUid ? 1 : 2;
         document.getElementById('tj-p1-name').innerText = room.p1.name;
         document.getElementById('tj-p2-name').innerText = room.p2 ? room.p2.name : "대기 중...";
         
-        const isMyTurn = (room.turn === 1 && room.p1.uid === myUid) || (room.turn === 2 && room.p2 && room.p2.uid === myUid);
-        document.getElementById('game-status-tj').innerText = room.status === 'WAITING' ? "상대를 기다려주세요" : (isMyTurn ? "내 차례입니다!" : "상대방의 차례입니다.");
-        
-        if(room.status === 'WAITING' && room.p1.uid === myUid && room.p2) {
-            document.getElementById('btn-tj-start').style.display = 'block';
+        const btnStart = document.getElementById('btn-tj-start');
+        if(room.status === 'WAITING') {
+            document.getElementById('game-status-tj').innerText = room.p1.uid===myUid ? (room.p2?"시작 버튼을 누르세요":"상대 대기 중") : "방장 시작 대기 중";
+            btnStart.style.display = (room.p1.uid===myUid && room.p2) ? 'block' : 'none';
+        } else if(room.status === 'FINISHED') {
+            document.getElementById('game-status-tj').innerText = "게임 종료!"; btnStart.style.display = 'none';
         } else {
-            document.getElementById('btn-tj-start').style.display = 'none';
+            btnStart.style.display = 'none';
+            document.getElementById('game-status-tj').innerText = room.turn === myNum ? "내 차례입니다!" : "상대방 차례입니다.";
         }
+
+        renderTJHand('hand-p1-tj', room.p1Hand || [], 1, room);
+        renderTJHand('hand-p2-tj', room.p2Hand || [], 2, room);
     }
 
-    function renderHand(id, hand, owner, room) {
-        const el = document.getElementById(id);
-        el.innerHTML = "";
+    function renderTJHand(id, hand, owner, room) {
+        const el = document.getElementById(id); el.innerHTML = "";
         hand.forEach((type, idx) => {
-            const p = document.createElement('div');
-            p.className = `piece captured p${owner}`;
-            p.innerText = getPieceSymbol(type);
-            p.onclick = (e) => {
-                e.stopPropagation();
-                handleHandClick(type, idx, owner, room);
-            };
+            const p = document.createElement('div'); p.className = `piece captured p${owner}`; p.innerHTML = getTJHtml(type);
+            p.onclick = () => { if(room.turn === owner && room.status === 'PLAYING') selectedPiece = { type, owner, fromHand: true, handIdx: idx }; renderTJ(room); };
             el.appendChild(p);
         });
     }
 
-    function getPieceSymbol(t) {
-        const map = {jang:'將', sang:'象', ja:'卒', hu:'侯'};
-        return map[t];
-    }
-
-    function handleHandClick(type, idx, owner, room) {
-        const myPlayerNum = room.p1.uid === myUid ? 1 : 2;
-        if(room.turn !== myPlayerNum || owner !== myPlayerNum) return;
-        selectedPiece = { type, owner, fromHand: true, handIdx: idx };
-        renderTJ(room);
-    }
-
     function handleTJClick(r, c, room) {
-        const myPlayerNum = room.p1.uid === myUid ? 1 : 2;
-        if(room.turn !== myPlayerNum || room.status !== 'PLAYING') return;
-
+        const myNum = room.p1.uid === myUid ? 1 : 2;
+        if(room.turn !== myNum || room.status !== 'PLAYING') return;
         const target = room.board[r][c];
 
-        // 1. 창고에서 기물 놓기
         if(selectedPiece && selectedPiece.fromHand) {
             if(!target) {
-                const newBoard = JSON.parse(JSON.stringify(room.board));
-                newBoard[r][c] = { t: selectedPiece.type, o: myPlayerNum };
-                const newHand = room[myPlayerNum === 1 ? 'p1Hand' : 'p2Hand'].filter((_, i) => i !== selectedPiece.handIdx);
-                db.ref(`rooms/TJ/${currentRoomId}`).update({
-                    board: newBoard,
-                    [myPlayerNum === 1 ? 'p1Hand' : 'p2Hand']: newHand,
-                    turn: myPlayerNum === 1 ? 2 : 1
-                });
+                const nb = JSON.parse(JSON.stringify(room.board)); nb[r][c] = { t: selectedPiece.type, o: myNum };
+                const nh = room[myNum===1?'p1Hand':'p2Hand'].filter((_, i) => i !== selectedPiece.handIdx);
+                db.ref(`rooms/TJ/${currentRoomId}`).update({board: nb, [myNum===1?'p1Hand':'p2Hand']: nh, turn: myNum===1?2:1});
                 selectedPiece = null;
             }
             return;
         }
 
-        // 2. 기물 선택
-        if(target && target.o === myPlayerNum) {
-            selectedPiece = { r, c, type: target.t, owner: target.o };
-            renderTJ(room);
-            return;
-        }
+        if(target && target.o === myNum) { selectedPiece = { r, c, type: target.t, owner: target.o }; renderTJ(room); return; }
 
-        // 3. 기물 이동 및 공격
         if(selectedPiece && !selectedPiece.fromHand) {
-            if(isValidMove(selectedPiece.r, selectedPiece.c, r, c, selectedPiece.type, myPlayerNum)) {
-                const newBoard = JSON.parse(JSON.stringify(room.board));
-                let newP1Hand = [...(room.p1Hand || [])];
-                let newP2Hand = [...(room.p2Hand || [])];
-
-                if(target && target.o !== myPlayerNum) {
-                    const capturedType = target.t === 'hu' ? 'ja' : target.t;
-                    myPlayerNum === 1 ? newP1Hand.push(capturedType) : newP2Hand.push(capturedType);
-                    if(target.t === 'jang') return winGameTJ(myPlayerNum);
+            if(isValidTJMove(selectedPiece.r, selectedPiece.c, r, c, selectedPiece.type, myNum)) {
+                const nb = JSON.parse(JSON.stringify(room.board)); let nP1 = [...(room.p1Hand||[])], nP2 = [...(room.p2Hand||[])];
+                if(target && target.o !== myNum) {
+                    const cap = target.t === 'hu' ? 'ja' : target.t;
+                    myNum === 1 ? nP1.push(cap) : nP2.push(cap);
+                    if(target.t === 'jang') return endGame(myUid, room);
                 }
-
-                let movingPieceType = selectedPiece.type;
-                if(movingPieceType === 'ja' && ((myPlayerNum === 1 && r === 0) || (myPlayerNum === 2 && r === 3))) {
-                    movingPieceType = 'hu';
-                }
-
-                newBoard[r][c] = { t: movingPieceType, o: myPlayerNum };
-                newBoard[selectedPiece.r][selectedPiece.c] = null;
-
-                db.ref(`rooms/TJ/${currentRoomId}`).update({
-                    board: newBoard,
-                    p1Hand: newP1Hand,
-                    p2Hand: newP2Hand,
-                    turn: myPlayerNum === 1 ? 2 : 1
-                });
-
-                // 승리 조건: 장 진격
-                if(movingPieceType === 'jang' && ((myPlayerNum === 1 && r === 0) || (myPlayerNum === 2 && r === 3))) {
-                    setTimeout(() => checkJangWin(myPlayerNum), 100);
-                }
-
+                let mt = selectedPiece.type;
+                if(mt === 'ja' && ((myNum === 1 && r === 0) || (myNum === 2 && r === 3))) mt = 'hu';
+                nb[r][c] = { t: mt, o: myNum }; nb[selectedPiece.r][selectedPiece.c] = null;
+                db.ref(`rooms/TJ/${currentRoomId}`).update({board: nb, p1Hand: nP1, p2Hand: nP2, turn: myNum===1?2:1});
+                if(mt === 'jang' && ((myNum === 1 && r === 0) || (myNum === 2 && r === 3))) alert("내 장이 끝줄에 도달했습니다! (원작 룰: 한 턴 버티면 승리)");
                 selectedPiece = null;
             }
         }
     }
 
-    function isValidMove(sr, sc, tr, tc, type, owner) {
-        const dr = tr - sr;
-        const dc = tc - sc;
-        const adr = Math.abs(dr);
-        const adc = Math.abs(dc);
-
+    function isValidTJMove(sr, sc, tr, tc, type, owner) {
+        const dr = tr - sr, dc = tc - sc, adr = Math.abs(dr), adc = Math.abs(dc);
+        if (adr === 0 && adc === 0) return false;
         if(adr > 1 || adc > 1) return false;
-
-        if(type === 'jang') return adr <= 1 && adc <= 1;
+        if(type === 'jang') return true;
         if(type === 'sang') return adr === 1 && adc === 1;
         if(type === 'ja') return dc === 0 && dr === (owner === 1 ? -1 : 1);
         if(type === 'hu') {
-            if(owner === 1) return !(dr === 1 && adc === 1); // 후는 뒤쪽 대각선 못감
-            if(owner === 2) return !(dr === -1 && adc === 1);
+            if(owner === 1 && dr === 1 && adc === 1) return false;
+            if(owner === 2 && dr === -1 && adc === 1) return false;
+            return true;
         }
         return false;
     }
 
-    function startGameTJ() {
-        db.ref(`rooms/TJ/${currentRoomId}`).update({status: 'PLAYING'});
-    }
+    // [러시아 장기]
+    function renderRG(room) {
+        const myNum = room.p1.uid === myUid ? 1 : 2;
+        const isMyTurn = room.status === 'PLAYING' && room.turn === myNum;
+        document.getElementById('rg-p1-name').innerText = room.p1.name + " (RED)";
+        document.getElementById('rg-p2-name').innerText = (room.p2 ? room.p2.name : "대기 중...") + " (BLUE)";
 
-    function winGameTJ(winnerNum) {
-        alert(`${winnerNum === 1 ? 'P1' : 'P2'} 승리!`);
-        db.ref(`rooms/TJ/${currentRoomId}`).remove();
-        showScreen('screen-home');
-    }
-
-    function checkJangWin(playerNum) {
-        // 실제 방송 룰: 진격 후 한 턴을 버텨야 함 (여기서는 단순화하여 진격 시 승리 문구)
-        // alert(playerNum + "번 플레이어의 장이 상대 진영에 도달했습니다!");
-    }
-
-    // --- 결합 게임 로직 (기존 로직 이식) ---
-    function generateGHBoard() {
-        const shapes=['circle','triangle','square'], colors=['red','blue','yellow'], bgs=['black','white','gray'];
-        let d = [];
-        shapes.forEach(s=>colors.forEach(c=>bgs.forEach(b=>d.push({s,c,b}))));
-        return d.sort(()=>Math.random()-0.5).slice(0,9);
-    }
-
-    function renderGH(room) {
-        const boardEl = document.getElementById('gh-board');
-        boardEl.innerHTML = "";
-        room.board.forEach((card, i) => {
-            const div = document.createElement('div');
-            div.className = `gh-card bg-${card.b}`;
-            const shape = document.createElement('div');
-            shape.className = `shape-${card.s}`;
-            const color = card.c === 'red' ? '#f44336' : (card.c === 'blue' ? '#2196F3' : '#ffeb3b');
-            if(card.s === 'triangle') shape.style.borderBottomColor = color;
-            else shape.style.backgroundColor = color;
-            div.appendChild(shape);
-            boardEl.appendChild(div);
-        });
-        document.getElementById('gh-p1-name').innerText = room.p1.name;
-        document.getElementById('gh-p2-name').innerText = room.p2 ? room.p2.name : "대기 중...";
-        if(room.status === 'WAITING' && room.p1.uid === myUid && room.p2) {
-            document.getElementById('btn-gh-start').style.display = 'block';
+        const btnStart = document.getElementById('btn-rg-start');
+        if (room.status === 'WAITING') {
+            document.getElementById('game-status-rg').innerText = room.p1.uid === myUid ? (room.p2 ? "시작 버튼을 누르세요!" : "상대 대기 중...") : "방장 대기 중...";
+            btnStart.style.display = (room.p1.uid === myUid && room.p2) ? 'block' : 'none';
+        } else if(room.status === 'FINISHED') {
+            document.getElementById('game-status-rg').innerText = "게임 종료!"; btnStart.style.display = 'none';
         } else {
-            document.getElementById('btn-gh-start').style.display = 'none';
+            btnStart.style.display = 'none'; document.getElementById('game-status-rg').innerText = isMyTurn ? "내 차례! 기물 선택" : "상대방 차례";
+        }
+
+        const boardEl = document.getElementById('rg-board'); boardEl.innerHTML = "";
+        room.board = room.board || Array.from({length:9}, ()=>[]);
+        room.board.forEach((stack, idx) => {
+            const cell = document.createElement('div'); cell.className = 'rg-cell';
+            if(selectedPiece && selectedPiece.origin === 'board' && selectedPiece.idx === idx) cell.classList.add('selected');
+            if(stack && stack.length > 0) {
+                const top = stack[stack.length - 1];
+                const piece = document.createElement('div'); piece.className = `rg-piece p${top.o} rg-size-${top.s}`; cell.appendChild(piece);
+            }
+            cell.onclick = () => handleRGClick('board', idx, room); boardEl.appendChild(cell);
+        });
+
+        renderRGHand('rg-hand-p1', room.p1Hand || [], 1, room);
+        renderRGHand('rg-hand-p2', room.p2Hand || [], 2, room);
+    }
+
+    function renderRGHand(elId, hand, owner, room) {
+        const el = document.getElementById(elId); el.innerHTML = "";
+        hand.forEach((size, idx) => {
+            const item = document.createElement('div'); item.className = 'rg-hand-item';
+            if(selectedPiece && selectedPiece.origin === 'hand' && selectedPiece.owner === owner && selectedPiece.idx === idx) item.classList.add('selected');
+            const piece = document.createElement('div'); piece.className = `rg-piece p${owner} rg-size-${size}`;
+            item.appendChild(piece); item.onclick = () => handleRGClick('hand', idx, room, size, owner); el.appendChild(item);
+        });
+    }
+
+    function handleRGClick(type, idx, room, size=null, owner=null) {
+        const myNum = room.p1.uid === myUid ? 1 : 2;
+        if(room.status !== 'PLAYING' || room.turn !== myNum) return;
+
+        if(type === 'hand') {
+            if(owner !== myNum) return;
+            selectedPiece = { origin: 'hand', idx: idx, size: size, owner: owner }; renderRG(room); return;
+        }
+
+        if(type === 'board') {
+            const stack = room.board[idx] || []; const topPiece = stack.length > 0 ? stack[stack.length - 1] : null;
+            if(selectedPiece) {
+                if(!topPiece || topPiece.s < selectedPiece.size) {
+                    let nb = JSON.parse(JSON.stringify(room.board)); let nP1 = [...(room.p1Hand || [])], nP2 = [...(room.p2Hand || [])];
+                    nb[idx] = nb[idx] || []; nb[idx].push({o: myNum, s: selectedPiece.size});
+                    if(selectedPiece.origin === 'hand') myNum === 1 ? nP1.splice(selectedPiece.idx, 1) : nP2.splice(selectedPiece.idx, 1);
+                    else nb[selectedPiece.idx].pop();
+                    selectedPiece = null;
+                    const win = checkRGWin(nb);
+                    db.ref(`rooms/RG/${currentRoomId}`).update({board: nb, p1Hand: nP1, p2Hand: nP2, turn: myNum === 1 ? 2 : 1}).then(() => {
+                        if(win > 0) endGame(win === 1 ? room.p1.uid : room.p2.uid, room);
+                    });
+                } else { selectedPiece = null; renderRG(room); }
+            } else {
+                if(topPiece && topPiece.o === myNum) { selectedPiece = { origin: 'board', idx: idx, size: topPiece.s, owner: myNum }; renderRG(room); }
+            }
         }
     }
 
-    function startGameGH() {
-        db.ref(`rooms/GH/${currentRoomId}`).update({status: 'PLAYING'});
+    function checkRGWin(board) {
+        const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+        let p1=false, p2=false;
+        for(let l of lines) {
+            const [a,b,c] = l;
+            const tA = board[a] && board[a].length>0 ? board[a][board[a].length-1] : null;
+            const tB = board[b] && board[b].length>0 ? board[b][board[b].length-1] : null;
+            const tC = board[c] && board[c].length>0 ? board[c][board[c].length-1] : null;
+            if(tA && tB && tC) { if(tA.o===1 && tB.o===1 && tC.o===1) p1=true; if(tA.o===2 && tB.o===2 && tC.o===2) p2=true; }
+        }
+        if(p1 && p2) return 3; if(p1) return 1; if(p2) return 2; return 0;
     }
-    // (이하 결합 세부 로직 생략 - 구조적 통합 위주)
 
+    // [결합 생략 간소화 코드 (기존과 로직 동일)]
+    function generateGHBoard() {
+        const shapes=['circle','triangle','square'], colors=['red','blue','yellow'], bgs=['black','white','gray']; let d = [];
+        shapes.forEach(s=>colors.forEach(c=>bgs.forEach(b=>d.push({s,c,b})))); return d.sort(()=>Math.random()-0.5).slice(0,9);
+    }
+    function renderGH(room) {
+        document.getElementById('gh-round-title').innerText = `ROUND ${room.round} / 5`;
+        document.getElementById('found-haps-count').innerText = room.foundHaps ? room.foundHaps.length : 0;
+        const boardEl = document.getElementById('gh-board'); boardEl.innerHTML = "";
+        room.board.forEach((card, i) => {
+            const isMyTurn = room.hapTurn && room.hapTurn.uid === myUid;
+            const div = document.createElement('div'); div.className = `gh-card bg-${card.b} ${isMyTurn && selectedCards.includes(i) ? 'selected' : ''}`;
+            div.onclick = () => {
+                if(!room.hapTurn || room.hapTurn.uid !== myUid) return;
+                if(selectedCards.includes(i)) selectedCards = selectedCards.filter(x => x !== i); else selectedCards.push(i);
+                renderGH(room); if(selectedCards.length === 3) checkGH(room);
+            };
+            const shape = document.createElement('div'); shape.className = `shape-${card.s}`;
+            const color = card.c === 'red' ? '#f44336' : (card.c === 'blue' ? '#2196F3' : '#ffeb3b');
+            if(card.s === 'triangle') shape.style.borderBottomColor = color; else shape.style.backgroundColor = color;
+            div.appendChild(shape); boardEl.appendChild(div);
+        });
+        document.getElementById('gh-p1-name').innerText = room.p1.name; document.getElementById('gh-p1-score').innerText = room.p1.score;
+        if(room.p2) { document.getElementById('gh-p2-name').innerText = room.p2.name; document.getElementById('gh-p2-score').innerText = room.p2.score; }
+
+        const isPlaying = room.status === 'PLAYING';
+        document.getElementById('btn-gh-hap').disabled = !isPlaying || room.hapTurn;
+        document.getElementById('btn-gh-gyul').disabled = !isPlaying || room.hapTurn;
+
+        const btnStart = document.getElementById('btn-gh-start');
+        if(!isPlaying) {
+            if(room.status === 'FINISHED') { document.getElementById('game-status-gh').innerText = "게임 종료!"; btnStart.style.display='none'; }
+            else { btnStart.style.display = (room.p1.uid === myUid && room.p2) ? 'block' : 'none'; document.getElementById('game-status-gh').innerText = room.p1.uid === myUid ? (room.p2?"시작 버튼을 누르세요":"상대 대기 중") : "방장 대기 중"; }
+        } else {
+            btnStart.style.display = 'none'; document.getElementById('game-status-gh').innerText = room.hapTurn ? `${room.hapTurn.name}님 합 찾는 중!` : "합 결 외치세요";
+            if(room.hapTurn) { if(room.hapTurn.uid !== myUid) selectedCards=[]; startTimerGH(room.hapTurn.startTime); } else { selectedCards=[]; stopTimerGH(); }
+        }
+    }
+    function callHap() { db.ref(`rooms/GH/${currentRoomId}/hapTurn`).set({uid:myUid, name:myName, startTime:Date.now()}); }
+    function checkGH(room) {
+        const c = selectedCards.map(i=>room.board[i]);
+        const valid = ['s','c','b'].every(a => (c[0][a]===c[1][a]&&c[1][a]===c[2][a]) || (c[0][a]!==c[1][a]&&c[0][a]!==c[2][a]&&c[1][a]!==c[2][a]));
+        const sorted = [...selectedCards].sort().join(','); const fHaps = room.foundHaps || []; const myKey = room.p1.uid === myUid ? 'p1' : 'p2';
+        if(fHaps.includes(sorted) || !valid) { db.ref(`rooms/GH/${currentRoomId}/${myKey}/score`).set(room[myKey].score - 1); db.ref(`rooms/GH/${currentRoomId}/hapTurn`).set(null); }
+        else { fHaps.push(sorted); db.ref(`rooms/GH/${currentRoomId}/${myKey}/score`).set(room[myKey].score + 1); db.ref(`rooms/GH/${currentRoomId}`).update({foundHaps: fHaps, hapTurn: null}); }
+    }
+    function callGyul() {
+        db.ref(`rooms/GH/${currentRoomId}`).once('value', snap => {
+            const room = snap.val(); let remain = 0; const fHaps = room.foundHaps || [];
+            for(let i=0;i<7;i++) for(let j=i+1;j<8;j++) for(let k=j+1;k<9;k++) {
+                const c=[room.board[i],room.board[j],room.board[k]];
+                if(['s','c','b'].every(a=>(c[0][a]===c[1][a]&&c[1][a]===c[2][a])||(c[0][a]!==c[1][a]&&c[0][a]!==c[2][a]&&c[1][a]!==c[2][a])) && !fHaps.includes(`${i},${j},${k}`)) remain++;
+            }
+            const myKey = room.p1.uid === myUid ? 'p1' : 'p2';
+            if(remain === 0) {
+                db.ref(`rooms/GH/${currentRoomId}/${myKey}/score`).set(room[myKey].score + 3);
+                if(room.round >= 5) { endGame(room.p1.score > room.p2.score ? room.p1.uid : room.p2.uid, room); }
+                else db.ref(`rooms/GH/${currentRoomId}`).update({round: room.round+1, board: generateGHBoard(), foundHaps: [], hapTurn: null});
+            } else db.ref(`rooms/GH/${currentRoomId}/${myKey}/score`).set(room[myKey].score - 1);
+        });
+    }
+    function startTimerGH(start) {
+        clearInterval(timerInterval);
+        timerInterval = setInterval(()=>{
+            const r = 30 - Math.floor((Date.now()-start)/1000); document.getElementById('timer-fill-gh').style.width = (r/30*100)+"%";
+            if(r<=0) { clearInterval(timerInterval); db.ref(`rooms/GH/${currentRoomId}/hapTurn`).set(null); db.ref(`rooms/GH/${currentRoomId}/${room.p1.uid===myUid?'p1':'p2'}/score`).set(room[room.p1.uid===myUid?'p1':'p2'].score - 1); }
+        }, 1000);
+    }
+    function stopTimerGH() { clearInterval(timerInterval); document.getElementById('timer-fill-gh').style.width = "100%"; }
 </script>
 </body>
 </html>
