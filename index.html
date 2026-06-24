@@ -31,6 +31,7 @@
         /* 규칙 예시 박스 */
         .example-container { display: flex; gap: 10px; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin: 10px 0; align-items: center;}
         .ex-card { width: 60px; height: 60px; border: 2px solid #fff; display: flex; justify-content: center; align-items: center; border-radius: 5px; }
+        .rule-list { list-style-position: inside; padding-left: 0; line-height: 1.8; margin-top: 10px; font-size: 1.2rem; }
 
         /* 게임 보드 */
         .game-main { display: grid; grid-template-columns: 250px 1fr 250px; width: 100%; gap: 20px; margin-top: 20px; }
@@ -88,30 +89,43 @@
     </div>
 
     <div id="screen-rules" class="screen">
-        <h2 style="font-size: 3rem; color: var(--gold);">📖 합! 3가지 예시 완벽 이해</h2>
-        <div style="background: rgba(0,0,0,0.7); padding: 30px; border-radius: 15px; text-align: left; max-width: 800px; line-height: 1.6; font-size: 1.2rem; margin: 20px 0;">
-            <p>모양, 색상, 배경색이 <b>각각 모두 같거나 모두 달라야</b> 합입니다.</p>
-            <h4 style="color:#4CAF50; margin-top:20px;">예시 1) 모양만 같고, 배경과 색깔은 모두 다른 경우 (합!)</h4>
+        <h2 style="font-size: 3rem; color: var(--gold); margin-bottom: 20px;">📖 게임 방법 완벽 가이드</h2>
+        
+        <div style="background: rgba(0,0,0,0.7); padding: 30px; border-radius: 15px; text-align: left; max-width: 800px; line-height: 1.6; margin-bottom: 20px; width: 100%;">
+            <h3 style="color: var(--gold); font-size: 1.8rem; margin-bottom: 10px;">1. '합!' 이란?</h3>
+            <p style="font-size: 1.2rem;">모양, 색상, 배경색이 <b>각각 모두 같거나 모두 달라야</b> 합입니다.</p>
+            <h4 style="color:#4CAF50; margin-top:15px; font-size:1.1rem;">예시 1) 모양만 같고, 배경과 색깔은 모두 다른 경우 (합!)</h4>
             <div class="example-container">
                 <div class="ex-card bg-black"><div style="border-left:20px solid transparent; border-right:20px solid transparent; border-bottom:40px solid #f44336; width:0; height:0;"></div></div>
                 <div class="ex-card bg-white"><div style="border-left:20px solid transparent; border-right:20px solid transparent; border-bottom:40px solid #2196F3; width:0; height:0;"></div></div>
                 <div class="ex-card bg-gray"><div style="border-left:20px solid transparent; border-right:20px solid transparent; border-bottom:40px solid #ffeb3b; width:0; height:0;"></div></div>
             </div>
-            <h4 style="color:#2196F3; margin-top:20px;">예시 2) 배경만 같고, 모양과 색깔은 모두 다른 경우 (합!)</h4>
+            <h4 style="color:#2196F3; margin-top:15px; font-size:1.1rem;">예시 2) 배경만 같고, 모양과 색깔은 모두 다른 경우 (합!)</h4>
             <div class="example-container">
                 <div class="ex-card bg-gray"><div style="width:40px; height:40px; background:#f44336;"></div></div>
                 <div class="ex-card bg-gray"><div style="width:40px; height:40px; border-radius:50%; background:#2196F3;"></div></div>
                 <div class="ex-card bg-gray"><div style="border-left:20px solid transparent; border-right:20px solid transparent; border-bottom:40px solid #ffeb3b; width:0; height:0;"></div></div>
             </div>
-            <h4 style="color:#ffeb3b; margin-top:20px;">예시 3) 색깔만 같고, 모양과 배경은 모두 다른 경우 (합!)</h4>
+            <h4 style="color:#ffeb3b; margin-top:15px; font-size:1.1rem;">예시 3) 색깔만 같고, 모양과 배경은 모두 다른 경우 (합!)</h4>
             <div class="example-container">
                 <div class="ex-card bg-black"><div style="width:40px; height:40px; border-radius:50%; background:#f44336;"></div></div>
                 <div class="ex-card bg-white"><div style="width:40px; height:40px; background:#f44336;"></div></div>
                 <div class="ex-card bg-gray"><div style="border-left:20px solid transparent; border-right:20px solid transparent; border-bottom:40px solid #f44336; width:0; height:0;"></div></div>
             </div>
-            <p style="margin-top:20px; color:#ffeb3b;">※ 이번 룰에서는 한 라운드당 카드가 사라지지 않습니다! 9장 안에서 모든 조합을 찾아보세요.</p>
+            <p style="margin-top:20px; color:#ffeb3b; font-size:1.1rem;">※ 주의: 카드는 사라지지 않습니다! 9장 안에서 가능한 모든 조합을 중복 없이 찾아야 합니다.</p>
         </div>
-        <button class="btn" onclick="showScreen('screen-lobby')">로비로 돌아가기</button>
+
+        <div style="background: rgba(0,0,0,0.7); padding: 30px; border-radius: 15px; text-align: left; max-width: 800px; width: 100%; margin-bottom: 20px;">
+            <h3 style="color: var(--gold); font-size: 1.8rem; margin-bottom: 10px;">2. 점수 및 '결!' 규칙</h3>
+            <ul class="rule-list">
+                <li><b style="color:#4CAF50">합! 성공 (+1점):</b> [합] 버튼을 누르고 30초 이내에 정확한 3장을 고른 경우</li>
+                <li><b style="color:#f44336">합! 오답 / 시간초과 (-1점):</b> 틀리거나 제한 시간을 초과한 경우. (기회가 상대방에게 넘어갑니다!)</li>
+                <li><b style="color:#2196F3">결! 성공 (+3점):</b> 9장의 카드 중 더 이상 '합'의 조합이 남아있지 않을 때 외쳐서 맞힌 경우 (다음 라운드로 넘어갑니다)</li>
+                <li><b style="color:#f44336">결! 오답 (-1점):</b> '결'을 외쳤지만, 아직 찾지 못한 '합'의 조합이 남아있는 경우</li>
+            </ul>
+        </div>
+        
+        <button class="btn" style="padding: 15px 40px; font-size: 1.5rem;" onclick="showScreen('screen-lobby')">로비로 돌아가기</button>
     </div>
 
     <div id="screen-game" class="screen">
@@ -146,7 +160,7 @@
 
 <script>
     // ==========================================
-    // 1. 파이어베이스 설정 (기존과 동일)
+    // 1. 파이어베이스 설정
     // ==========================================
     const firebaseConfig = {
       apiKey: "AIzaSyD1y7hpto_WOkwB_ia35epFfe3UjLbetCw",
@@ -175,7 +189,7 @@
     }
 
     // ==========================================
-    // 2. 닉네임 입력 및 로그인 (에러 처리 추가)
+    // 2. 닉네임 입력 및 로그인
     // ==========================================
     function loginAndStart() {
         const inputName = document.getElementById('nickname-input').value.trim();
@@ -185,7 +199,6 @@
         }
         myName = inputName;
 
-        // 익명 로그인 시도 (여기에 에러 캐치 추가)
         auth.signInAnonymously().then(userCredential => {
             myUid = userCredential.user.uid;
             
@@ -201,12 +214,12 @@
             updateRanking();
         }).catch(error => {
             console.error(error);
-            alert("서버 접속에 실패했습니다!\n파이어베이스 콘솔에서 '익명(Anonymous) 로그인' 설정이 켜져 있는지 확인해주세요.\n상세에러: " + error.message);
+            alert("서버 접속에 실패했습니다!\n파이어베이스 설정 창에서 '익명 로그인'을 허용했는지 확인해주세요.");
         });
     }
 
     // ==========================================
-    // 3. 로비: 방 목록 및 랭킹 표시
+    // 3. 로비: 유령 방 필터링 기능 추가
     // ==========================================
     function listenToRooms() {
         db.ref('rooms').on('value', snap => {
@@ -217,7 +230,9 @@
             snap.forEach(child => {
                 const room = child.val();
                 const roomId = child.key;
-                if (room.status === 'WAITING') {
+                
+                // 유령 방(undefined) 제외 조건 추가
+                if (room.status === 'WAITING' && room.creatorName && room.creatorName !== 'undefined') {
                     hasRooms = true;
                     listEl.innerHTML += `
                         <div class="room-item">
@@ -247,10 +262,9 @@
     }
 
     // ==========================================
-    // 4. 방 생성 및 입장 로직 (라운드 시스템 적용)
+    // 4. 방 생성 및 입장 로직
     // ==========================================
     function generateBoard() {
-        // 27장 중 9장을 무작위로 추출
         const shapes = ['circle', 'triangle', 'square'];
         const colors = ['red', 'blue', 'yellow'];
         const bgs = ['black', 'white', 'gray'];
@@ -268,8 +282,8 @@
             p1: { uid: myUid, name: myName, score: 0 },
             p2: null,
             board: generateBoard(),
-            foundHaps: [], // 이번 라운드에 찾은 합 배열
-            round: 1,      // 현재 라운드 (1~5)
+            foundHaps: [],
+            round: 1,
             status: 'WAITING',
             hapTurn: null
         });
@@ -307,11 +321,9 @@
     // 5. 게임 렌더링
     // ==========================================
     function renderGame(room) {
-        // 라운드 정보 갱신
         document.getElementById('room-display').innerText = `ROUND ${room.round} / ${MAX_ROUNDS}`;
         document.getElementById('room-info').innerText = `${room.creatorName}님의 방`;
         
-        // 찾은 합 개수 표시
         const foundCount = room.foundHaps ? room.foundHaps.length : 0;
         document.getElementById('found-haps-count').innerText = foundCount;
 
@@ -416,7 +428,7 @@
     }
 
     // ==========================================
-    // 7. 합, 결 버튼 및 판별 알고리즘 (카드 유지 방식)
+    // 7. 합, 결 버튼 및 판별 알고리즘
     // ==========================================
     function callHap() {
         db.ref('rooms/' + currentRoomId + '/hapTurn').set({
@@ -446,13 +458,12 @@
     }
 
     function checkHapResult(room) {
-        const sortedSelection = [...selectedCards].sort((a,b)=>a-b).join(','); // "0,3,8" 형태
+        const sortedSelection = [...selectedCards].sort((a,b)=>a-b).join(','); 
         const foundHaps = room.foundHaps || [];
         const myKey = room.p1.uid === myUid ? 'p1' : 'p2';
         const opponent = room.p1.uid === myUid ? room.p2 : room.p1;
 
         if (foundHaps.includes(sortedSelection)) {
-            // 이미 찾은 합인 경우
             alert("이미 찾은 합입니다! -1점. 상대에게 기회가 넘어갑니다.");
             db.ref(`rooms/${currentRoomId}/${myKey}/score`).set(room[myKey].score - 1);
             if (!room.hapTurn.isChance) {
@@ -468,8 +479,6 @@
                 alert("정답입니다! +1점");
                 db.ref(`rooms/${currentRoomId}/${myKey}/score`).set(room[myKey].score + 1);
                 foundHaps.push(sortedSelection);
-                
-                // 카드는 교체하지 않고 foundHaps 배열만 업데이트
                 db.ref(`rooms/${currentRoomId}`).update({ foundHaps: foundHaps, hapTurn: null });
             } else {
                 db.ref(`rooms/${currentRoomId}/${myKey}/score`).set(room[myKey].score - 1);
@@ -511,11 +520,9 @@
             db.ref(`rooms/${currentRoomId}/${myKey}/score`).set(room[myKey].score + 3);
             
             if (room.round >= MAX_ROUNDS) {
-                // 게임 최종 종료
                 alert(`결! 정답입니다. +3점\n\n모든 라운드가 종료되었습니다! 결과 창으로 이동합니다.`);
                 endGame(room);
             } else {
-                // 다음 라운드로 넘어가기
                 alert(`결! 정답입니다. +3점\n\n다음 라운드로 넘어갑니다!`);
                 db.ref(`rooms/${currentRoomId}`).update({ 
                     round: room.round + 1,
@@ -531,7 +538,6 @@
     }
 
     function endGame(room) {
-        // 이미 종료 처리중이면 스킵
         if (room.status === 'FINISHED') return;
 
         let p1Score = room.p1.score;
@@ -547,10 +553,9 @@
         
         db.ref('rooms/' + currentRoomId).update({ status: 'FINISHED' });
         
-        // 5초 후 로비로 강제 이동
         setTimeout(() => { 
             alert("게임이 종료되어 대기실로 돌아갑니다.");
-            db.ref('rooms/' + currentRoomId).remove(); // 쓰임이 다한 방 삭제
+            db.ref('rooms/' + currentRoomId).remove(); 
             showScreen('screen-lobby'); 
         }, 5000);
     }
