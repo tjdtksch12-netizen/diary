@@ -11,7 +11,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
         
-        :root { --main-red: #8b0000; --gold: #ffd700; --dark-bg: #1a1a1a; }
+        :root { --main-red: #8b0000; --gold: #ffd700; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Jua', sans-serif; user-select: none; }
         body { background-color: var(--main-red); color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
         
@@ -22,47 +22,47 @@
         .btn:hover:not(:disabled) { background-color: #ffea00; transform: scale(1.05); }
         .btn:disabled { background: #ccc; cursor: not-allowed; color: #666; box-shadow: none; }
 
-        /* 공통 UI */
+        /* 로그인 & 홈 & 로비 */
         .input-box { padding: 15px; font-size: 1.5rem; border-radius: 8px; border: none; text-align: center; width: 300px; margin-bottom: 15px; }
         .game-select-card { background: rgba(0,0,0,0.5); padding: 30px; border-radius: 20px; text-align: center; width: 320px; border: 2px solid var(--gold); cursor: pointer; transition: 0.3s; margin: 10px; }
         .game-select-card:hover { background: rgba(255,215,0,0.2); transform: translateY(-10px); }
         .room-list-container { width: 100%; max-width: 600px; background: rgba(0,0,0,0.4); padding: 20px; border-radius: 15px; margin-top: 20px; }
         .room-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 10px; }
         .player-panel { background: rgba(0,0,0,0.6); padding: 15px; border-radius: 15px; display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 150px; }
-        .rule-section { background: rgba(0,0,0,0.7); padding: 25px; border-radius: 15px; text-align: left; max-width: 800px; width: 100%; margin-bottom: 20px; line-height: 1.6; font-size: 1.2rem; }
+        
+        #timer-bar { width: 100%; max-width: 600px; height: 15px; background: #333; border-radius: 10px; overflow: hidden; margin: 10px 0; border: 2px solid #222; }
+        #timer-fill { width: 100%; height: 100%; background: #4CAF50; transition: width 1s linear; }
 
-        /* 결합 */
+        /* 1. 결합 보드 */
         .gh-grid { display: grid; grid-template-columns: repeat(3, 110px); grid-gap: 10px; background: #5c0000; padding: 15px; border-radius: 10px; border: 3px solid #3a0000; }
         .gh-card { width: 110px; height: 110px; border: 3px solid #fff; border-radius: 8px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.1s; background: #000; }
         .gh-card.selected { border-color: var(--gold); box-shadow: 0 0 15px var(--gold); transform: scale(1.05); }
-
-        /* 십이장기 (3x4 배열, 테두리 색상 적용) */
-        .janggi-board { display: grid; grid-template-columns: repeat(4, 95px); grid-template-rows: repeat(3, 95px); gap: 5px; background: #c59b6d; padding: 15px; border: 6px solid #5a3a22; border-radius: 10px; box-shadow: inset 0 0 20px rgba(0,0,0,0.3); }
-        .janggi-cell { width: 95px; height: 95px; background: #e6c280; border: 1px solid #c29d62; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; }
-        .janggi-cell.selected { background: #fffacd; box-shadow: inset 0 0 20px var(--gold); }
-        .piece { width: 80px; height: 80px; display: flex; justify-content: center; align-items: center; border: 4px solid; cursor: pointer; transition: 0.2s; font-size: 2.8rem; font-weight: bold; font-family: 'Malgun Gothic', serif; background: #fff; box-shadow: 2px 2px 5px rgba(0,0,0,0.4); }
-        .piece.p1 { color: #d32f2f; border-color: #d32f2f; }
-        .piece.p2 { color: #2e7d32; border-color: #2e7d32; } /* 초록색 적용 */
-        .piece.captured { width: 60px; height: 60px; margin: 5px; font-size: 2rem; border-width: 3px; }
-        
-        /* 러시아 장기 */
-        .rg-board { display: grid; grid-template-columns: repeat(3, 130px); grid-template-rows: repeat(3, 130px); gap: 10px; background: #4caf50; padding: 15px; border: 5px solid #2e7d32; border-radius: 10px; }
-        .rg-cell { width: 130px; height: 130px; background: #a5d6a7; border-radius: 8px; display: flex; justify-content: center; align-items: center; position: relative; transition: 0.2s; }
-        .rg-cell.drag-over { background: rgba(255, 234, 0, 0.6); box-shadow: inset 0 0 20px var(--gold); border: 2px dashed var(--gold); }
-        .rg-piece { border-radius: 50%; display: flex; justify-content: center; align-items: center; position: absolute; transition: 0.1s; box-shadow: 3px 3px 8px rgba(0,0,0,0.5); border: 3px solid #fff; cursor: grab; }
-        .rg-piece:active { cursor: grabbing; transform: scale(1.05); }
-        .rg-piece.p1 { background: #f44336; } .rg-piece.p2 { background: #2196F3; }
-        .rg-size-1 { width: 45px; height: 45px; } .rg-size-2 { width: 85px; height: 85px; } .rg-size-3 { width: 125px; height: 125px; }
-        .rg-hand { display: flex; flex-wrap: wrap; gap: 15px; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 10px; width: 280px; justify-content: center; align-items: center; min-height: 150px; }
-        .rg-hand-item { position: relative; width: 60px; height: 60px; display:flex; justify-content:center; align-items:center; }
-
-        /* 기타 */
-        #timer-bar { width: 100%; max-width: 600px; height: 15px; background: #333; border-radius: 10px; overflow: hidden; margin: 10px 0; }
-        #timer-fill { width: 100%; height: 100%; background: #4CAF50; transition: width 1s linear; }
         .shape-circle { width: 60px; height: 60px; border-radius: 50%; }
         .shape-square { width: 60px; height: 60px; }
         .shape-triangle { width: 0; height: 0; border-left: 30px solid transparent; border-right: 30px solid transparent; border-bottom: 60px solid; }
         .bg-black { background-color: #111; } .bg-white { background-color: #eee; } .bg-gray { background-color: #777; }
+
+        /* 2. 십이장기 보드 (3x4 가로형) */
+        .janggi-board { display: grid; grid-template-columns: repeat(4, 95px); grid-template-rows: repeat(3, 95px); gap: 5px; background: #c59b6d; padding: 15px; border: 6px solid #5a3a22; border-radius: 10px; box-shadow: inset 0 0 20px rgba(0,0,0,0.3); }
+        .janggi-cell { width: 95px; height: 95px; background: #e6c280; border: 1px solid #c29d62; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; }
+        .janggi-cell.selected { background: #fffacd; box-shadow: inset 0 0 20px var(--gold); }
+        .piece { width: 80px; height: 80px; display: flex; justify-content: center; align-items: center; border: 4px solid; cursor: pointer; transition: 0.2s; font-size: 2.8rem; font-weight: bold; background: #fff; box-shadow: 2px 2px 5px rgba(0,0,0,0.4); }
+        .piece.p1 { color: #d32f2f; border-color: #d32f2f; }
+        .piece.p2 { color: #2e7d32; border-color: #2e7d32; transform: rotate(180deg); }
+        .piece.captured { width: 60px; height: 60px; margin: 5px; font-size: 2rem; border-width: 3px; transform: none !important; }
+
+        /* 3. 러시아 장기 보드 */
+        .rg-board { display: grid; grid-template-columns: repeat(3, 130px); grid-template-rows: repeat(3, 130px); gap: 10px; background: #4caf50; padding: 15px; border: 5px solid #2e7d32; border-radius: 10px; }
+        .rg-cell { width: 130px; height: 130px; background: #a5d6a7; border-radius: 8px; display: flex; justify-content: center; align-items: center; position: relative; transition: 0.2s; }
+        .rg-cell.drag-over { background: rgba(255, 234, 0, 0.6); box-shadow: inset 0 0 20px var(--gold); border: 2px dashed var(--gold); }
+        .rg-cell.selected { box-shadow: inset 0 0 0 5px var(--gold); }
+        .rg-piece { border-radius: 50%; display: flex; justify-content: center; align-items: center; position: absolute; transition: 0.1s; box-shadow: 3px 3px 8px rgba(0,0,0,0.5); border: 3px solid #fff; cursor: grab; }
+        .rg-piece:active { cursor: grabbing; transform: scale(1.05); }
+        .rg-piece.p1 { background: #f44336; } .rg-piece.p2 { background: #2196F3; }
+        .rg-size-1 { width: 45px; height: 45px; } .rg-size-2 { width: 85px; height: 85px; } .rg-size-3 { width: 125px; height: 125px; }
+        .rg-hand { display: flex; flex-wrap: wrap; gap: 20px; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 10px; width: 280px; justify-content: center; align-items: center; min-height: 150px; }
+        .rg-hand-item { position: relative; width: 60px; height: 60px; display:flex; justify-content:center; align-items:center; }
+        .rg-hand-item.selected .rg-piece { border-color: var(--gold); transform: scale(1.1); box-shadow: 0 0 10px var(--gold); z-index: 10; }
     </style>
 </head>
 <body>
@@ -70,19 +70,19 @@
     <!-- 1. 로그인 화면 -->
     <div id="screen-login" class="screen active" style="justify-content: center; height: 100vh;">
         <h1 style="font-size: 4rem; color: var(--gold); margin-bottom: 20px;">THE GENIUS ONLINE</h1>
-        <p style="margin-bottom: 30px; font-size: 1.2rem; text-align: center;">닉네임과 4자리 비밀번호(PIN)를 입력하세요.<br>처음 오셨다면 입력한 정보로 자동 가입 및 전적이 저장됩니다.</p>
+        <p style="margin-bottom: 30px; font-size: 1.2rem; text-align: center;">닉네임과 4자리 비밀번호(PIN)를 입력하세요.<br>처음 접속 시 자동으로 계정이 생성되어 전적이 저장됩니다.</p>
         
         <input type="text" id="login-id" class="input-box" placeholder="닉네임 입력 (최대 8자)" maxlength="8">
         <input type="password" id="login-pw" class="input-box" placeholder="비밀번호 숫자 4자리" maxlength="4" onkeypress="if(event.keyCode==13) login()">
         
         <button class="btn" style="padding:15px 50px; font-size: 1.5rem;" onclick="login()">접속하기</button>
-        <button onclick="adminLogin()" style="margin-top: 30px; background:none; border:none; color:#888; text-decoration:underline; cursor:pointer;">관리자 전용 로그인</button>
+        <button onclick="adminLogin()" style="margin-top: 30px; background:none; border:none; color:#888; text-decoration:underline; cursor:pointer;">관리자 전용</button>
     </div>
 
     <!-- 2. 관리자 화면 -->
     <div id="screen-admin" class="screen">
         <h1 style="color:var(--gold); margin-bottom: 20px;">🛡️ 시스템 관리자</h1>
-        <div class="rule-section" style="max-width: 600px;">
+        <div class="rule-section" style="max-width: 600px; background:rgba(0,0,0,0.8); padding:20px; border-radius:15px;">
             <h3 style="margin-bottom: 15px;">유저 목록 및 관리</h3>
             <div id="admin-user-list" style="max-height: 400px; overflow-y: auto;"></div>
         </div>
@@ -128,47 +128,10 @@
             <div id="rank-content"></div>
         </div>
 
-        <button class="btn" onclick="showScreen('screen-rules')" style="margin-top:20px; background:#ff9800; color:#fff; padding: 10px 40px;">📖 이 게임의 자세한 규칙 보기</button>
-        <button class="btn" onclick="showScreen('screen-home')" style="margin-top:10px; background:#555; color:#fff;">뒤로가기</button>
+        <button class="btn" onclick="showScreen('screen-home')" style="margin-top:20px; background:#555; color:#fff;">뒤로가기</button>
     </div>
 
-    <!-- 5. 게임 설명서 화면 -->
-    <div id="screen-rules" class="screen">
-        <h1 style="font-size: 3rem; color: var(--gold); margin-bottom: 20px;">📖 게임 설명서</h1>
-        
-        <div id="rule-content-GH" class="rule-section" style="display:none;">
-            <h2 style="color:#4CAF50; margin-bottom: 10px;">결! 합!</h2>
-            <p>9장의 카드 중 3장을 골라 <b>'모양, 색상, 배경색'이 각각 모두 같거나 모두 다른 조합(합)</b>을 찾습니다.<br>
-            - <b>합! (+1점)</b>: 올바른 3장을 찾은 경우<br>
-            - <b>결! (+3점)</b>: 더 이상 판에 '합'이 없을 때 외침<br>
-            - 틀리거나 시간초과 시 -1점 및 상대에게 기회가 넘어갑니다.</p>
-        </div>
-
-        <div id="rule-content-TJ" class="rule-section" style="display:none;">
-            <h2 style="color:#2e7d32; margin-bottom: 10px;">십이장기 (3x4 배치 룰)</h2>
-            <p><b>[이동 규칙]</b><br>
-            - <b>王 (왕):</b> 모든 8방향으로 1칸 이동<br>
-            - <b>將 (장):</b> 상, 하, 좌, 우 십자 방향으로 1칸 이동<br>
-            - <b>相 (상):</b> 대각선 4방향으로 1칸 이동<br>
-            - <b>子 (자):</b> 무조건 앞으로 1칸 이동. <b>끝줄(상대편 진영 끝)에 닿으면 즉시 侯(후)로 승급!</b><br>
-            - <b>侯 (후):</b> 대각선 뒤쪽 2곳을 제외한 모든 6방향 이동 가능<br><br>
-            <b>[승리 조건]</b> 상대방의 '王(왕)'을 잡아먹거나, 내 '王(왕)'이 상대방 진영 끝줄에 무사히 도달하면 즉시 승리합니다.<br>
-            <b>[포로 룰]</b> 상대의 말을 잡으면 내 창고로 오며, 내 턴에 이동을 포기하고 빈칸 아무곳에나 내려놓을 수 있습니다.</p>
-        </div>
-
-        <div id="rule-content-RG" class="rule-section" style="display:none;">
-            <h2 style="color:#ff9800; margin-bottom: 10px;">러시아 장기 (마트료시카 틱택토)</h2>
-            <p>3x3 판에서 마우스를 <b>드래그 앤 드롭(Drag & Drop)</b>하여 즐기는 게임입니다.<br>
-            - 먼저 <b>가로, 세로, 대각선 중 한 줄을 내 색깔로 채우면 승리</b>합니다.<br>
-            - 각 플레이어는 <b>대(2개), 중(2개), 소(2개)</b> 총 6개의 말을 가집니다.<br>
-            - <b>[잡아먹기 룰]</b> 판에 있는 말보다 <b>더 큰 말</b>을 마우스로 끌어다가 그 위에 덮어씌울 수 있습니다! (내 말, 상대 말 모두 가능)<br>
-            - 덮어씌워진 말을 다시 이동시키면 밑에 있던 말이 부활하여 상대가 이길 수도 있으니 주의하세요!</p>
-        </div>
-
-        <button class="btn" style="padding: 15px 40px; font-size: 1.5rem;" onclick="showScreen('screen-lobby')">이해했습니다! 로비로 돌아가기</button>
-    </div>
-
-    <!-- 6. 결합 플레이 화면 -->
+    <!-- 5. 결합 플레이 화면 -->
     <div id="screen-game-gh" class="screen">
         <h2 id="gh-round-title" style="color:var(--gold); font-size:2rem;">ROUND 1 / 5</h2>
         <div id="timer-bar"><div id="timer-fill-gh"></div></div>
@@ -177,7 +140,7 @@
             <div class="player-panel"><div id="gh-p1-name" style="color:#4CAF50; font-size:1.2rem;">P1</div><div id="gh-p1-score" style="font-size:3rem; color:var(--gold);">0</div></div>
             <div style="display:flex; flex-direction:column; align-items:center;">
                 <div class="gh-grid" id="gh-board"></div>
-                <div style="margin-top: 15px;">찾은 합: <span id="found-haps-count" style="color:#ffeb3b">0</span>개</div>
+                <div style="margin-top: 15px; font-size:1.2rem;">찾은 합: <span id="found-haps-count" style="color:#ffeb3b">0</span>개</div>
             </div>
             <div class="player-panel"><div id="gh-p2-name" style="color:#2196F3; font-size:1.2rem;">P2</div><div id="gh-p2-score" style="font-size:3rem; color:var(--gold);">0</div></div>
         </div>
@@ -188,7 +151,7 @@
         </div>
     </div>
 
-    <!-- 7. 십이장기 플레이 화면 -->
+    <!-- 6. 십이장기 플레이 화면 -->
     <div id="screen-game-tj" class="screen">
         <h2 style="color:var(--gold); font-size:2rem; margin-bottom:5px;">십이장기</h2>
         <div id="game-status-tj" style="font-size:1.5rem; margin-bottom:15px;"></div>
@@ -206,7 +169,7 @@
         <button class="btn" id="btn-tj-start" style="display:none; margin-top:20px; background:#ff9800; color:#fff;" onclick="startGame()">🚀 시작하기</button>
     </div>
 
-    <!-- 8. 러시아 장기 플레이 화면 -->
+    <!-- 7. 러시아 장기 플레이 화면 -->
     <div id="screen-game-rg" class="screen">
         <h2 style="color:var(--gold); font-size:2rem; margin-bottom:5px;">러시아 장기</h2>
         <div id="game-status-rg" style="font-size:1.5rem; margin-bottom:15px;"></div>
@@ -242,16 +205,11 @@
 
     let myUid = null; let myName = null;
     let currentGameType = null; let currentRoomId = null;
-    let selectedCards = []; let selectedPiece = null;
     let timerInterval = null; let isBotThinking = false;
 
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        if(id === 'screen-rules') {
-            document.querySelectorAll('[id^="rule-content-"]').forEach(el => el.style.display = 'none');
-            document.getElementById('rule-content-' + currentGameType).style.display = 'block';
-        }
     }
 
     // ==========================================
@@ -309,7 +267,7 @@
                 const list = document.getElementById('admin-user-list'); list.innerHTML = "";
                 snap.forEach(child => {
                     const u = child.val();
-                    list.innerHTML += `<div class="user-item">
+                    list.innerHTML += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #555; padding:10px;">
                         <div><strong style="color:var(--gold);">${child.key}</strong> (PIN: ${u.pin}) | ${u.wins}승 ${u.losses}패</div>
                         <div>
                             <button class="btn" style="padding:5px 10px; font-size:1rem;" onclick="db.ref('users/${child.key}').update({pin:'0000'})">PW 초기화</button>
@@ -329,6 +287,7 @@
         const titles = { GH: '결! 합!', TJ: '십이장기', RG: '러시아 장기' };
         document.getElementById('lobby-title').innerText = titles[type] + " 로비";
         showScreen('screen-lobby');
+        
         db.ref('rooms/' + type).on('value', snap => {
             const list = document.getElementById('room-list-content'); list.innerHTML = ""; let hasRooms = false;
             snap.forEach(child => {
@@ -351,22 +310,17 @@
             roomData.round = 1; roomData.board = generateGHBoard(); roomData.foundHaps = [];
         } else if(currentGameType === 'TJ') {
             roomData.turn = 1; roomData.p1Hand = []; roomData.p2Hand = [];
-            // 3x4 배열 원작 적용: P1(왼쪽) vs P2(오른쪽)
-            roomData.board = [
-                [{t:'sang', o:1}, {t:'wang', o:1}, {t:'jang', o:1}, null],
-                [null, {t:'ja', o:1}, null, null],
-                [null, null, {t:'ja', o:2}, null],
-                [null, {t:'jang', o:2}, {t:'wang', o:2}, {t:'sang', o:2}]
-            ];
-            // 배열을 3행 4열로 재배치 (위는 4x4 오류, 아래로 정정)
+            // 3줄 x 4칸: P1(왼쪽 Red), P2(오른쪽 Green)
             roomData.board = [
                 [{t:'sang', o:1}, null, null, {t:'jang', o:2}],
                 [{t:'wang', o:1}, {t:'ja', o:1}, {t:'ja', o:2}, {t:'wang', o:2}],
                 [{t:'jang', o:1}, null, null, {t:'sang', o:2}]
             ];
+            roomData.selectedPiece = null;
         } else if(currentGameType === 'RG') {
             roomData.turn = 1; roomData.board = Array.from({length: 9}, () => []);
             roomData.p1Hand = [1,1,2,2,3,3]; roomData.p2Hand = [1,1,2,2,3,3];
+            roomData.selectedPiece = null;
         }
         db.ref(`rooms/${currentGameType}/${roomId}`).set(roomData); joinRoomLogic(roomId);
     }
@@ -380,8 +334,9 @@
     }
 
     function joinRoomLogic(id) {
-        currentRoomId = id; selectedCards = []; selectedPiece = null; stopTimerGH();
+        currentRoomId = id; stopTimerGH();
         showScreen(`screen-game-${currentGameType.toLowerCase()}`);
+        
         db.ref(`rooms/${currentGameType}/${id}`).on('value', snap => {
             const room = snap.val();
             if(!room) { alert("방이 삭제되었습니다."); showScreen('screen-lobby'); return; }
@@ -389,6 +344,7 @@
             if(currentGameType === 'TJ') renderTJ(room);
             if(currentGameType === 'RG') renderRG(room);
 
+            // 봇 로직
             if(room.status === 'PLAYING' && room.isPractice && !isBotThinking) {
                 if(currentGameType === 'GH' && !room.hapTurn) triggerBotGH(room);
                 if(currentGameType === 'TJ' && room.turn === 2) triggerBotTJ(room);
@@ -411,10 +367,108 @@
     }
 
     // ==========================================
-    // 십이장기 (3x4 원작 버전)
+    // 1. 결합 로직 (선택 동기화 포함)
+    // ==========================================
+    function generateGHBoard() {
+        const shapes=['circle','triangle','square'], colors=['red','blue','yellow'], bgs=['black','white','gray']; let d = [];
+        shapes.forEach(s=>colors.forEach(c=>bgs.forEach(b=>d.push({s,c,b})))); return d.sort(()=>Math.random()-0.5).slice(0,9);
+    }
+
+    function renderGH(room) {
+        document.getElementById('gh-round-title').innerText = `ROUND ${room.round} / 5`;
+        document.getElementById('found-haps-count').innerText = room.foundHaps ? room.foundHaps.length : 0;
+        
+        const boardEl = document.getElementById('gh-board'); boardEl.innerHTML = "";
+        
+        // 상대방이 선택한 카드 실시간 동기화
+        const currentSelected = room.hapTurn && room.hapTurn.selectedCards ? room.hapTurn.selectedCards : [];
+
+        room.board.forEach((card, i) => {
+            const div = document.createElement('div'); 
+            div.className = `gh-card bg-${card.b} ${currentSelected.includes(i) ? 'selected' : ''}`;
+            
+            div.onclick = () => {
+                if(!room.hapTurn || room.hapTurn.uid !== myUid) return;
+                let newSelection = [...currentSelected];
+                if(newSelection.includes(i)) newSelection = newSelection.filter(x => x !== i);
+                else newSelection.push(i);
+                
+                // 파이어베이스에 내 선택 실시간 저장 (상대방도 보임)
+                db.ref(`rooms/GH/${currentRoomId}/hapTurn/selectedCards`).set(newSelection);
+                if(newSelection.length === 3) setTimeout(() => checkGH(room, newSelection), 100);
+            };
+            
+            const shape = document.createElement('div'); shape.className = `shape-${card.s}`;
+            const color = card.c === 'red' ? '#f44336' : (card.c === 'blue' ? '#2196F3' : '#ffeb3b');
+            if(card.s === 'triangle') shape.style.borderBottomColor = color; else shape.style.backgroundColor = color;
+            div.appendChild(shape); boardEl.appendChild(div);
+        });
+
+        document.getElementById('gh-p1-name').innerText = room.p1.name; document.getElementById('gh-p1-score').innerText = room.p1.score;
+        if(room.p2) { document.getElementById('gh-p2-name').innerText = room.p2.name; document.getElementById('gh-p2-score').innerText = room.p2.score; }
+
+        const isPlaying = room.status === 'PLAYING';
+        document.getElementById('btn-gh-hap').disabled = !isPlaying || room.hapTurn;
+        document.getElementById('btn-gh-gyul').disabled = !isPlaying || room.hapTurn;
+
+        const btnStart = document.getElementById('btn-gh-start');
+        if(!isPlaying) {
+            if(room.status === 'FINISHED') { document.getElementById('game-status-gh').innerText = "게임 종료!"; btnStart.style.display='none'; }
+            else { btnStart.style.display = (room.p1.uid === myUid && room.p2) ? 'block' : 'none'; document.getElementById('game-status-gh').innerText = room.p1.uid === myUid ? (room.p2?"시작 버튼을 누르세요":"상대 대기 중") : "방장 대기 중"; }
+        } else {
+            btnStart.style.display = 'none'; 
+            document.getElementById('game-status-gh').innerText = room.hapTurn ? `${room.hapTurn.name}님 합 찾는 중!` : "합 결 외치세요";
+            if(room.hapTurn) { startTimerGH(room.hapTurn.startTime); } else { stopTimerGH(); }
+        }
+    }
+
+    function callHap() { db.ref(`rooms/GH/${currentRoomId}/hapTurn`).set({uid:myUid, name:myName, startTime:Date.now(), selectedCards: []}); }
+    
+    function checkGH(room, selection) {
+        const c = selection.map(i=>room.board[i]);
+        const valid = ['s','c','b'].every(a => (c[0][a]===c[1][a]&&c[1][a]===c[2][a]) || (c[0][a]!==c[1][a]&&c[0][a]!==c[2][a]&&c[1][a]!==c[2][a]));
+        const sorted = [...selection].sort().join(','); const fHaps = room.foundHaps || []; const myKey = room.p1.uid === myUid ? 'p1' : 'p2';
+        
+        if(fHaps.includes(sorted) || !valid) { 
+            db.ref(`rooms/GH/${currentRoomId}/${myKey}/score`).set(room[myKey].score - 1); 
+            db.ref(`rooms/GH/${currentRoomId}/hapTurn`).set(null); 
+        } else { 
+            fHaps.push(sorted); 
+            db.ref(`rooms/GH/${currentRoomId}/${myKey}/score`).set(room[myKey].score + 1); 
+            db.ref(`rooms/GH/${currentRoomId}`).update({foundHaps: fHaps, hapTurn: null}); 
+        }
+    }
+
+    function callGyul() {
+        db.ref(`rooms/GH/${currentRoomId}`).once('value', snap => {
+            const room = snap.val(); let remain = 0; const fHaps = room.foundHaps || [];
+            for(let i=0;i<7;i++) for(let j=i+1;j<8;j++) for(let k=j+1;k<9;k++) {
+                const c=[room.board[i],room.board[j],room.board[k]];
+                if(['s','c','b'].every(a=>(c[0][a]===c[1][a]&&c[1][a]===c[2][a])||(c[0][a]!==c[1][a]&&c[0][a]!==c[2][a]&&c[1][a]!==c[2][a])) && !fHaps.includes(`${i},${j},${k}`)) remain++;
+            }
+            const myKey = room.p1.uid === myUid ? 'p1' : 'p2';
+            if(remain === 0) {
+                db.ref(`rooms/GH/${currentRoomId}/${myKey}/score`).set(room[myKey].score + 3);
+                if(room.round >= 5) { endGame(room.p1.score > room.p2.score ? room.p1.uid : room.p2.uid, room); }
+                else db.ref(`rooms/GH/${currentRoomId}`).update({round: room.round+1, board: generateGHBoard(), foundHaps: [], hapTurn: null});
+            } else db.ref(`rooms/GH/${currentRoomId}/${myKey}/score`).set(room[myKey].score - 1);
+        });
+    }
+
+    function startTimerGH(start) {
+        clearInterval(timerInterval);
+        timerInterval = setInterval(()=>{
+            const r = 30 - Math.floor((Date.now()-start)/1000); document.getElementById('timer-fill-gh').style.width = (r/30*100)+"%";
+            if(r<=0) { clearInterval(timerInterval); db.ref(`rooms/GH/${currentRoomId}/hapTurn`).set(null); db.ref(`rooms/GH/${currentRoomId}/${room.p1.uid===myUid?'p1':'p2'}/score`).set(room[room.p1.uid===myUid?'p1':'p2'].score - 1); }
+        }, 1000);
+    }
+    function stopTimerGH() { clearInterval(timerInterval); document.getElementById('timer-fill-gh').style.width = "100%"; }
+
+    // ==========================================
+    // 2. 십이장기 로직 (상대방 움직임 실시간 보임)
     // ==========================================
     function renderTJ(room) {
-        const myNum = room.p1.uid === myUid ? 1 : (room.p2 && room.p2.uid === myUid ? 2 : 0);
+        const myNum = room.p1.uid === myUid ? 1 : 2;
         document.getElementById('tj-p1-name').innerText = room.p1.name + " (RED)";
         document.getElementById('tj-p2-name').innerText = (room.p2 ? room.p2.name : "대기 중...") + " (GREEN)";
 
@@ -428,75 +482,95 @@
             btnStart.style.display = 'none'; document.getElementById('game-status-tj').innerText = room.turn === myNum ? "내 차례입니다!" : "상대방 차례입니다.";
         }
 
+        const selP = room.selectedPiece; // 파이어베이스에서 상대방 선택 상태 가져옴
+
         const boardEl = document.getElementById('tj-board'); boardEl.innerHTML = "";
         room.board.forEach((row, r) => {
             row.forEach((cell, c) => {
                 const div = document.createElement('div'); div.className = 'janggi-cell';
-                if(selectedPiece && selectedPiece.r === r && selectedPiece.c === c) div.classList.add('selected');
+                if(selP && selP.r === r && selP.c === c) div.classList.add('selected');
+                
                 if(cell) {
                     const p = document.createElement('div'); p.className = `piece p${cell.o}`; p.innerText = {wang:'王', jang:'將', sang:'相', ja:'子', hu:'侯'}[cell.t];
                     div.appendChild(p);
                 }
-                div.onclick = () => handleTJClick(r, c, room); boardEl.appendChild(div);
+                div.onclick = () => handleTJClick(r, c, room, selP); boardEl.appendChild(div);
             });
         });
 
-        renderTJHand('hand-p1-tj', room.p1Hand || [], 1, room);
-        renderTJHand('hand-p2-tj', room.p2Hand || [], 2, room);
+        renderTJHand('hand-p1-tj', room.p1Hand || [], 1, room, selP);
+        renderTJHand('hand-p2-tj', room.p2Hand || [], 2, room, selP);
     }
 
-    function renderTJHand(id, hand, owner, room) {
+    function renderTJHand(id, hand, owner, room, selP) {
         const el = document.getElementById(id); el.innerHTML = "";
         hand.forEach((type, idx) => {
             const p = document.createElement('div'); p.className = `piece captured p${owner}`; p.innerText = {wang:'王', jang:'將', sang:'相', ja:'子', hu:'侯'}[type];
-            p.onclick = () => { if(room.turn === owner && room.status === 'PLAYING') selectedPiece = { type, owner, fromHand: true, handIdx: idx }; renderTJ(room); };
+            if(selP && selP.fromHand && selP.owner === owner && selP.handIdx === idx) p.style.borderColor = 'var(--gold)';
+            
+            p.onclick = () => { 
+                if(room.turn === owner && room.status === 'PLAYING') {
+                    db.ref(`rooms/TJ/${currentRoomId}/selectedPiece`).set({ type, owner, fromHand: true, handIdx: idx });
+                }
+            };
             el.appendChild(p);
         });
     }
 
-    function handleTJClick(r, c, room) {
+    function handleTJClick(r, c, room, selP) {
         const myNum = room.p1.uid === myUid ? 1 : 2;
         if(room.turn !== myNum || room.status !== 'PLAYING') return;
         const target = room.board[r][c];
 
-        if(selectedPiece && selectedPiece.fromHand) {
+        // 손패에서 내려놓기
+        if(selP && selP.fromHand && selP.owner === myNum) {
             if(!target) {
-                const nb = JSON.parse(JSON.stringify(room.board)); nb[r][c] = { t: selectedPiece.type, o: myNum };
-                const nh = room[myNum===1?'p1Hand':'p2Hand'].filter((_, i) => i !== selectedPiece.handIdx);
-                db.ref(`rooms/TJ/${currentRoomId}`).update({board: nb, [myNum===1?'p1Hand':'p2Hand']: nh, turn: myNum===1?2:1});
-                selectedPiece = null;
-            } return;
+                const nb = JSON.parse(JSON.stringify(room.board)); nb[r][c] = { t: selP.type, o: myNum };
+                const nh = room[myNum===1?'p1Hand':'p2Hand'].filter((_, i) => i !== selP.handIdx);
+                db.ref(`rooms/TJ/${currentRoomId}`).update({board: nb, [myNum===1?'p1Hand':'p2Hand']: nh, turn: myNum===1?2:1, selectedPiece: null});
+            }
+            return;
         }
 
-        if(target && target.o === myNum) { selectedPiece = { r, c, type: target.t, owner: target.o }; renderTJ(room); return; }
+        // 내 말 클릭하여 선택하기 (상대방도 보이게 DB 전송)
+        if(target && target.o === myNum) { 
+            db.ref(`rooms/TJ/${currentRoomId}/selectedPiece`).set({ r, c, type: target.t, owner: target.o }); 
+            return; 
+        }
 
-        if(selectedPiece && !selectedPiece.fromHand) {
-            if(isValidTJMove(selectedPiece.r, selectedPiece.c, r, c, selectedPiece.type, myNum)) {
+        // 선택된 말 이동하기
+        if(selP && !selP.fromHand && selP.owner === myNum) {
+            if(isValidTJMove(selP.r, selP.c, r, c, selP.type, myNum)) {
                 const nb = JSON.parse(JSON.stringify(room.board)); let nP1 = [...(room.p1Hand||[])], nP2 = [...(room.p2Hand||[])];
                 if(target && target.o !== myNum) {
                     const cap = target.t === 'hu' ? 'ja' : target.t;
                     myNum === 1 ? nP1.push(cap) : nP2.push(cap);
                     if(target.t === 'wang') { alert(`십이장기 종료! P${myNum} 승리!`); return endGame(myUid, room); }
                 }
-                let mt = selectedPiece.type;
-                if(mt === 'ja' && ((myNum === 1 && c === 3) || (myNum === 2 && c === 0))) mt = 'hu'; // 승급 규칙
-                nb[r][c] = { t: mt, o: myNum }; nb[selectedPiece.r][selectedPiece.c] = null;
-                db.ref(`rooms/TJ/${currentRoomId}`).update({board: nb, p1Hand: nP1, p2Hand: nP2, turn: myNum===1?2:1});
+                let mt = selP.type;
+                if(mt === 'ja' && ((myNum === 1 && c === 3) || (myNum === 2 && c === 0))) mt = 'hu'; // 자 승급 룰 (col 3, col 0)
+                nb[r][c] = { t: mt, o: myNum }; nb[selP.r][selP.c] = null;
+                db.ref(`rooms/TJ/${currentRoomId}`).update({board: nb, p1Hand: nP1, p2Hand: nP2, turn: myNum===1?2:1, selectedPiece: null});
                 if(mt === 'wang' && ((myNum === 1 && c === 3) || (myNum === 2 && c === 0))) { alert("왕이 끝에 도달했습니다! P"+myNum+" 승리!"); endGame(myUid, room); }
-                selectedPiece = null;
+            } else {
+                db.ref(`rooms/TJ/${currentRoomId}/selectedPiece`).set(null); // 잘못된 곳 누르면 선택 해제
             }
         }
     }
 
+    // 십이장기 3x4 배열(가로)의 원작 이동 로직 완벽 적용
     function isValidTJMove(sr, sc, tr, tc, type, owner) {
         const dr = tr - sr, dc = tc - sc, adr = Math.abs(dr), adc = Math.abs(dc);
         if (adr === 0 && adc === 0) return false;
-        if(type === 'wang') return adr <= 1 && adc <= 1;
-        if(type === 'jang') return (adr === 1 && adc === 0) || (adr === 0 && adc === 1);
-        if(type === 'sang') return adr === 1 && adc === 1;
-        if(type === 'ja') return dr === 0 && dc === (owner === 1 ? 1 : -1);
+        
+        // P1(왼쪽)은 오른쪽(c가 커짐, dc=1)이 전진. P2(오른쪽)는 왼쪽(c가 작아짐, dc=-1)이 전진.
+        if(type === 'wang') return adr <= 1 && adc <= 1; // 8방향 1칸
+        if(type === 'jang') return (adr === 1 && adc === 0) || (adr === 0 && adc === 1); // 상하좌우
+        if(type === 'sang') return adr === 1 && adc === 1; // 대각선 4방향
+        if(type === 'ja') return dr === 0 && dc === (owner === 1 ? 1 : -1); // 오직 앞으로 1칸
         if(type === 'hu') {
             if (adr <= 1 && adc <= 1) {
+                // 뒤쪽 대각선 2곳만 이동 불가
                 if(owner === 1 && adr === 1 && dc === -1) return false;
                 if(owner === 2 && adr === 1 && dc === 1) return false;
                 return true;
@@ -507,7 +581,7 @@
     }
 
     // ==========================================
-    // 러시아 장기 (드래그 앤 드롭 API 적용)
+    // 3. 러시아 장기 (드래그 동기화)
     // ==========================================
     function renderRG(room) {
         const myNum = room.p1.uid === myUid ? 1 : 2;
@@ -525,13 +599,18 @@
             btnStart.style.display = 'none'; document.getElementById('game-status-rg').innerText = isMyTurn ? "내 차례! 말을 끌어다 놓으세요." : "상대방 차례";
         }
 
+        const selP = room.selectedPiece; // 상대방이 드래그 중인 기물 정보
+
         const boardEl = document.getElementById('rg-board'); boardEl.innerHTML = "";
         room.board = room.board || []; for(let i=0; i<9; i++) room.board[i] = room.board[i] || [];
 
         room.board.forEach((stack, idx) => {
             const cell = document.createElement('div'); cell.className = 'rg-cell';
             
-            // 드래그 드롭 이벤트
+            // 상대방이 드래그해서 들고 있는 말이 원래 있던 자리 표시
+            if(selP && selP.origin === 'board' && selP.idx === idx) cell.classList.add('selected');
+
+            // 드래그 드롭 이벤트 (시각 효과)
             cell.ondragover = (e) => { e.preventDefault(); cell.classList.add('drag-over'); };
             cell.ondragleave = () => { cell.classList.remove('drag-over'); };
             cell.ondrop = (e) => {
@@ -545,26 +624,38 @@
                 const piece = document.createElement('div'); piece.className = `rg-piece p${top.o} rg-size-${top.s}`;
                 if(top.o === myNum && isMyTurn) {
                     piece.draggable = true;
-                    piece.ondragstart = (e) => e.dataTransfer.setData('text/plain', JSON.stringify({origin:'board', idx:idx, size:top.s, owner:top.o}));
+                    piece.ondragstart = (e) => {
+                        const dragData = {origin:'board', idx:idx, size:top.s, owner:top.o};
+                        e.dataTransfer.setData('text/plain', JSON.stringify(dragData));
+                        db.ref(`rooms/RG/${currentRoomId}/selectedPiece`).set(dragData); // 드래그 시작 동기화
+                    };
+                    piece.ondragend = () => { db.ref(`rooms/RG/${currentRoomId}/selectedPiece`).set(null); }; // 놓치면 취소
                 }
                 cell.appendChild(piece);
             }
             boardEl.appendChild(cell);
         });
 
-        renderRGHand('rg-hand-p1', room.p1Hand || [], 1, room);
-        renderRGHand('rg-hand-p2', room.p2Hand || [], 2, room);
+        renderRGHand('rg-hand-p1', room.p1Hand || [], 1, room, selP);
+        renderRGHand('rg-hand-p2', room.p2Hand || [], 2, room, selP);
     }
 
-    function renderRGHand(elId, hand, owner, room) {
+    function renderRGHand(elId, hand, owner, room, selP) {
         const el = document.getElementById(elId); el.innerHTML = "";
         const myNum = room.p1.uid === myUid ? 1 : 2;
         hand.forEach((size, idx) => {
             const item = document.createElement('div'); item.className = 'rg-hand-item';
+            if(selP && selP.origin === 'hand' && selP.owner === owner && selP.hIdx === idx) item.classList.add('selected');
+
             const piece = document.createElement('div'); piece.className = `rg-piece p${owner} rg-size-${size}`;
             if(owner === myNum && room.turn === myNum && room.status === 'PLAYING') {
                 piece.draggable = true;
-                piece.ondragstart = (e) => e.dataTransfer.setData('text/plain', JSON.stringify({origin:'hand', hIdx:idx, size:size, owner:owner}));
+                piece.ondragstart = (e) => {
+                    const dragData = {origin:'hand', hIdx:idx, size:size, owner:owner};
+                    e.dataTransfer.setData('text/plain', JSON.stringify(dragData));
+                    db.ref(`rooms/RG/${currentRoomId}/selectedPiece`).set(dragData);
+                };
+                piece.ondragend = () => { db.ref(`rooms/RG/${currentRoomId}/selectedPiece`).set(null); };
             }
             item.appendChild(piece); el.appendChild(item);
         });
@@ -586,7 +677,7 @@
             else { nb[data.idx].pop(); }
 
             const win = checkRGWin(nb);
-            db.ref(`rooms/RG/${currentRoomId}`).update({board: nb, p1Hand: nP1, p2Hand: nP2, turn: myNum === 1 ? 2 : 1}).then(() => {
+            db.ref(`rooms/RG/${currentRoomId}`).update({board: nb, p1Hand: nP1, p2Hand: nP2, turn: myNum === 1 ? 2 : 1, selectedPiece: null}).then(() => {
                 if(win > 0) { alert(`러시아 장기 종료! P${win} 승리!`); endGame(win === 1 ? room.p1.uid : room.p2.uid, room); }
             });
         } else {
@@ -607,13 +698,99 @@
         if(p1 && p2) return 3; if(p1) return 1; if(p2) return 2; return 0;
     }
 
-    // [봇 및 결합 로직 요약]
-    function triggerBotTJ(room) { /* 봇 로직 생략(내부동일) */ }
-    function triggerBotRG(room) { /* 봇 로직 생략(내부동일) */ }
-    function generateGHBoard() { const shapes=['circle','triangle','square'], colors=['red','blue','yellow'], bgs=['black','white','gray']; let d = []; shapes.forEach(s=>colors.forEach(c=>bgs.forEach(b=>d.push({s,c,b})))); return d.sort(()=>Math.random()-0.5).slice(0,9); }
-    function renderGH(room) { /* 기존결합렌더링 */ }
-    function callHap() { db.ref(`rooms/GH/${currentRoomId}/hapTurn`).set({uid:myUid, name:myName, startTime:Date.now()}); }
-    function callGyul() { /* 기존결합로직 */ }
+    // ==========================================
+    // 컴퓨터(AI) 동작 로직
+    // ==========================================
+    function triggerBotGH(room) {
+        isBotThinking = true;
+        setTimeout(() => {
+            if(room.status !== 'PLAYING') { isBotThinking = false; return; }
+            const fHaps = room.foundHaps || []; let found = null;
+            for(let i=0;i<7;i++) for(let j=i+1;j<8;j++) for(let k=j+1;k<9;k++) {
+                const c=[room.board[i],room.board[j],room.board[k]];
+                if(['s','c','b'].every(a=>(c[0][a]===c[1][a]&&c[1][a]===c[2][a])||(c[0][a]!==c[1][a]&&c[0][a]!==c[2][a]&&c[1][a]!==c[2][a])) && !fHaps.includes(`${i},${j},${k}`)) { found = [i,j,k]; break; }
+            }
+            if(found) {
+                db.ref(`rooms/GH/${currentRoomId}/p2/score`).set(room.p2.score + 1); fHaps.push(found.join(',')); db.ref(`rooms/GH/${currentRoomId}`).update({foundHaps: fHaps});
+            } else {
+                db.ref(`rooms/GH/${currentRoomId}/p2/score`).set(room.p2.score + 3);
+                if(room.round >= 5) endGame(room.p1.score > room.p2.score ? room.p1.uid : room.p2.uid, room); else db.ref(`rooms/GH/${currentRoomId}`).update({round: room.round+1, board: generateGHBoard(), foundHaps: []});
+            }
+            isBotThinking = false;
+        }, 12000); // 봇은 12초마다 합을 하나 찾습니다.
+    }
+
+    function triggerBotTJ(room) {
+        isBotThinking = true;
+        setTimeout(() => {
+            if(room.status !== 'PLAYING') { isBotThinking = false; return; }
+            let moves = [];
+            for(let r=0; r<3; r++) for(let c=0; c<4; c++) {
+                const p = room.board[r][c];
+                if(p && p.o === 2) {
+                    for(let tr=0; tr<3; tr++) for(let tc=0; tc<4; tc++) {
+                        if(isValidTJMove(r, c, tr, tc, p.t, 2)) {
+                            const target = room.board[tr][tc];
+                            if(!target || target.o === 1) moves.push({type: 'move', sr: r, sc: c, tr: tr, tc: tc, t: p.t, tar: target});
+                        }
+                    }
+                }
+            }
+            if(room.p2Hand) room.p2Hand.forEach((t, i) => {
+                for(let r=0; r<3; r++) for(let c=0; c<4; c++) if(!room.board[r][c]) moves.push({type: 'drop', tr: r, tc: c, t: t, hIdx: i});
+            });
+
+            if(moves.length > 0) {
+                let move = moves.find(m => m.tar && m.tar.t === 'wang') || moves[Math.floor(Math.random() * moves.length)];
+                let nb = JSON.parse(JSON.stringify(room.board)), nH = [...(room.p2Hand || [])];
+                
+                if(move.type === 'move') {
+                    if(move.tar && move.tar.t === 'wang') return endGame('BOT', room);
+                    let mt = move.t; if(mt === 'ja' && move.tc === 0) mt = 'hu'; // 봇 승급
+                    nb[move.tr][move.tc] = {t: mt, o: 2}; nb[move.sr][move.sc] = null;
+                    if(mt === 'wang' && move.tc === 0) return endGame('BOT', room);
+                } else {
+                    nb[move.tr][move.tc] = {t: move.t, o: 2}; nH.splice(move.hIdx, 1);
+                }
+                db.ref(`rooms/TJ/${currentRoomId}`).update({board: nb, p2Hand: nH, turn: 1});
+            }
+            isBotThinking = false;
+        }, 2000);
+    }
+
+    function triggerBotRG(room) {
+        isBotThinking = true;
+        setTimeout(() => {
+            if(room.status !== 'PLAYING') { isBotThinking = false; return; }
+            let moves = [];
+            for(let i=0; i<9; i++) {
+                const stack = room.board[i] || []; const top = stack.length > 0 ? stack[stack.length-1] : null;
+                if(top && top.o === 2) {
+                    for(let j=0; j<9; j++) {
+                        const tStack = room.board[j] || []; const tTop = tStack.length > 0 ? tStack[tStack.length-1] : null;
+                        if(!tTop || tTop.s < top.s) moves.push({type:'board', sr: i, tr: j, s: top.s});
+                    }
+                }
+            }
+            if(room.p2Hand) room.p2Hand.forEach((s, i) => {
+                for(let j=0; j<9; j++) {
+                    const tStack = room.board[j] || []; const tTop = tStack.length > 0 ? tStack[tStack.length-1] : null;
+                    if(!tTop || tTop.s < s) moves.push({type:'hand', tr: j, s: s, hIdx: i});
+                }
+            });
+
+            if(moves.length > 0) {
+                let move = moves[Math.floor(Math.random() * moves.length)];
+                let nb = JSON.parse(JSON.stringify(room.board)); let nH = [...(room.p2Hand || [])];
+                nb[move.tr] = nb[move.tr] || []; nb[move.tr].push({o: 2, s: move.s});
+                if(move.type === 'hand') nH.splice(move.hIdx, 1); else nb[move.sr].pop();
+
+                if(checkRGWin(nb) > 0) return endGame('BOT', room);
+                db.ref(`rooms/RG/${currentRoomId}`).update({board: nb, p2Hand: nH, turn: 1});
+            }
+            isBotThinking = false;
+        }, 2000);
+    }
 
 </script>
 </body>
