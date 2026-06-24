@@ -23,17 +23,14 @@
         .btn:hover:not(:disabled) { background-color: #ffea00; transform: scale(1.05); }
         .btn:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; color: #666; }
 
-        /* 입력창 및 로비 리스트 */
         .input-box { padding: 15px; font-size: 1.5rem; border-radius: 8px; border: none; text-align: center; width: 300px; margin-bottom: 20px; }
         .room-list-container { width: 100%; max-width: 500px; background: rgba(0,0,0,0.4); padding: 20px; border-radius: 15px; margin-top: 20px; min-height: 200px; }
         .room-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 10px; font-size: 1.3rem; }
         
-        /* 규칙 예시 박스 */
         .example-container { display: flex; gap: 10px; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin: 10px 0; align-items: center;}
         .ex-card { width: 60px; height: 60px; border: 2px solid #fff; display: flex; justify-content: center; align-items: center; border-radius: 5px; }
         .rule-list { list-style-position: inside; padding-left: 0; line-height: 1.8; margin-top: 10px; font-size: 1.2rem; }
 
-        /* 게임 보드 */
         .game-main { display: grid; grid-template-columns: 250px 1fr 250px; width: 100%; gap: 20px; margin-top: 20px; }
         .player-panel { background: rgba(0,0,0,0.6); padding: 20px; border-radius: 15px; display: flex; flex-direction: column; align-items: center; text-align: center; }
         
@@ -42,13 +39,11 @@
         .card:hover { transform: scale(1.05); }
         .card.selected { border-width: 5px; border-color: var(--gold); box-shadow: 0 0 15px var(--gold); transform: scale(1.05); }
         
-        /* 도형 CSS */
         .shape-circle { width: 70px; height: 70px; border-radius: 50%; }
         .shape-square { width: 70px; height: 70px; }
         .shape-triangle { width: 0; height: 0; border-left: 35px solid transparent; border-right: 35px solid transparent; border-bottom: 70px solid; }
         .bg-black { background-color: #111; } .bg-white { background-color: #eee; } .bg-gray { background-color: #777; }
 
-        /* 타이머 및 기타 */
         #timer-bar { width: 100%; max-width: 600px; height: 20px; background: #333; border-radius: 10px; overflow: hidden; margin: 10px 0; border: 2px solid #222; }
         #timer-fill { width: 100%; height: 100%; background: #4CAF50; transition: width 1s linear, background-color 0.5s; }
         .status-panel { text-align: center; font-size: 1.8rem; margin-bottom: 5px; color: var(--gold); text-shadow: 1px 1px 2px black; }
@@ -152,11 +147,22 @@
             </div>
         </div>
 
-        <div style="margin-top: 30px; display: flex; gap: 20px;">
-            <button class="btn" id="btn-hap" style="font-size: 2rem; padding: 15px 50px; background-color: #4CAF50; color: white;" onclick="callHap()" disabled>합!</button>
-            <button class="btn" id="btn-gyul" style="font-size: 2rem; padding: 15px 50px; background-color: #2196F3; color: white;" onclick="callGyul()" disabled>결!</button>
+        <div id="game-controls" style="margin-top: 20px; display: flex; flex-direction: column; align-items: center; gap: 15px;">
+            <button class="btn" id="btn-start" style="display: none; font-size: 2rem; padding: 15px 60px; background-color: #ff9800; color: white; animation: pulse 1.5s infinite;" onclick="startGame()">🚀 게임 시작하기</button>
+            <div style="display: flex; gap: 20px;">
+                <button class="btn" id="btn-hap" style="font-size: 2rem; padding: 15px 50px; background-color: #4CAF50; color: white;" onclick="callHap()" disabled>합!</button>
+                <button class="btn" id="btn-gyul" style="font-size: 2rem; padding: 15px 50px; background-color: #2196F3; color: white;" onclick="callGyul()" disabled>결!</button>
+            </div>
         </div>
     </div>
+
+    <style>
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 152, 0, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }
+        }
+    </style>
 
 <script>
     // ==========================================
@@ -219,7 +225,7 @@
     }
 
     // ==========================================
-    // 3. 로비: 유령 방 필터링 기능 추가
+    // 3. 로비: 유령 방 필터링
     // ==========================================
     function listenToRooms() {
         db.ref('rooms').on('value', snap => {
@@ -231,7 +237,6 @@
                 const room = child.val();
                 const roomId = child.key;
                 
-                // 유령 방(undefined) 제외 조건 추가
                 if (room.status === 'WAITING' && room.creatorName && room.creatorName !== 'undefined') {
                     hasRooms = true;
                     listEl.innerHTML += `
@@ -262,7 +267,7 @@
     }
 
     // ==========================================
-    // 4. 방 생성 및 입장 로직
+    // 4. 방 생성 및 입장 로직 (시작 전까진 WAITING 유지)
     // ==========================================
     function generateBoard() {
         const shapes = ['circle', 'triangle', 'square'];
@@ -295,9 +300,10 @@
             if (!snap.exists()) return alert("존재하지 않는 방입니다.");
             const room = snap.val();
             if (room.p2 && room.p2.uid !== myUid && room.p1.uid !== myUid) return alert("방이 이미 꽉 찼습니다.");
+            
             if (!room.p2 && room.p1.uid !== myUid) {
+                // 2P 입장! (하지만 상태는 여전히 WAITING으로 두어 방장이 시작하게 함)
                 db.ref('rooms/' + roomId + '/p2').set({ uid: myUid, name: myName, score: 0 });
-                db.ref('rooms/' + roomId).update({ status: 'PLAYING' });
             }
             currentRoomId = roomId;
             joinRoomLogic(roomId);
@@ -309,7 +315,7 @@
         db.ref('rooms/' + roomId).on('value', snap => {
             const room = snap.val();
             if (!room) {
-                alert("게임이 종료되었습니다.");
+                alert("방장이 게임을 종료했거나 방이 사라졌습니다.");
                 showScreen('screen-lobby');
                 return;
             }
@@ -317,8 +323,13 @@
         });
     }
 
+    // 방장용 게임 시작 버튼
+    function startGame() {
+        db.ref('rooms/' + currentRoomId).update({ status: 'PLAYING' });
+    }
+
     // ==========================================
-    // 5. 게임 렌더링
+    // 5. 게임 렌더링 (방장 권한 제어 추가)
     // ==========================================
     function renderGame(room) {
         document.getElementById('room-display').innerText = `ROUND ${room.round} / ${MAX_ROUNDS}`;
@@ -353,11 +364,39 @@
             document.getElementById('p2-score').innerText = room.p2.score;
         }
 
+        const isCreator = room.p1.uid === myUid;
         const isPlaying = room.status === 'PLAYING';
         const isSomeoneHap = room.hapTurn !== null;
+        
+        const btnStart = document.getElementById('btn-start');
+        const btnHap = document.getElementById('btn-hap');
+        const btnGyul = document.getElementById('btn-gyul');
 
-        document.getElementById('btn-hap').disabled = !isPlaying || isSomeoneHap;
-        document.getElementById('btn-gyul').disabled = !isPlaying || isSomeoneHap;
+        // 게임 시작 전 (WAITING)
+        if (!isPlaying) {
+            btnHap.disabled = true;
+            btnGyul.disabled = true;
+            stopTimer();
+
+            if (isCreator) {
+                if (room.p2) {
+                    document.getElementById('game-status').innerText = "상대방 입장 완료! 시작 버튼을 눌러주세요.";
+                    btnStart.style.display = 'block';
+                } else {
+                    document.getElementById('game-status').innerText = "상대방 접속 대기 중...";
+                    btnStart.style.display = 'none';
+                }
+            } else {
+                document.getElementById('game-status').innerText = "방장이 게임을 시작할 때까지 기다려주세요...";
+                btnStart.style.display = 'none';
+            }
+            return;
+        }
+
+        // 게임 플레이 중
+        btnStart.style.display = 'none';
+        btnHap.disabled = isSomeoneHap;
+        btnGyul.disabled = isSomeoneHap;
 
         if (isSomeoneHap) {
             const turnMsg = room.hapTurn.isChance ? "[기회 획득] " : "";
@@ -367,12 +406,10 @@
         } else {
             selectedCards = []; 
             stopTimer();
-            if(!isPlaying) {
-                document.getElementById('game-status').innerText = "상대방 접속 대기 중...";
-            } else if (room.status === 'FINISHED') {
+            if (room.status === 'FINISHED') {
                 document.getElementById('game-status').innerText = "게임 완전 종료!";
-                document.getElementById('btn-hap').disabled = true;
-                document.getElementById('btn-gyul').disabled = true;
+                btnHap.disabled = true;
+                btnGyul.disabled = true;
             } else {
                 document.getElementById('game-status').innerText = "합! 이나 결! 을 외치세요";
             }
