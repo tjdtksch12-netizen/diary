@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>지니어스 게임 센터 - 온라인</title>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -101,7 +101,7 @@ body {
 
 .room-box {
     width: 100%;
-    max-width: 600px;
+    max-width: 650px;
     background: rgba(0,0,0,.4);
     padding: 20px;
     border-radius: 15px;
@@ -358,18 +358,18 @@ body {
 /* 러시아 장기 */
 .rg-board {
     display: grid;
-    grid-template-columns: repeat(3, 130px);
-    grid-template-rows: repeat(3, 130px);
-    gap: 10px;
+    grid-template-columns: repeat(3, 145px);
+    grid-template-rows: repeat(3, 145px);
+    gap: 18px;
     background: #81c784;
-    padding: 15px;
+    padding: 18px;
     border: 5px solid #2e7d32;
     border-radius: 10px;
 }
 
 .rg-cell {
-    width: 130px;
-    height: 130px;
+    width: 145px;
+    height: 145px;
     background: #a5d6a7;
     border-radius: 8px;
     display: flex;
@@ -387,14 +387,14 @@ body {
 .rg-hand-box {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 22px;
     background: rgba(0,0,0,.3);
-    padding: 15px;
+    padding: 20px;
     border-radius: 10px;
-    width: 270px;
+    width: 330px;
     justify-content: center;
     align-items: center;
-    min-height: 140px;
+    min-height: 180px;
 }
 
 .rg-piece {
@@ -435,12 +435,121 @@ body {
 
 .hand-item {
     position: relative;
-    width: 62px;
-    height: 62px;
+    width: 132px;
+    height: 132px;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
+}
+
+/* 같은 숫자 찾기 */
+.sn-board {
+    display: grid;
+    grid-template-columns: repeat(4, 92px);
+    grid-template-rows: repeat(4, 92px);
+    gap: 10px;
+    background: #2b0000;
+    padding: 15px;
+    border: 3px solid var(--gold);
+    border-radius: 14px;
+}
+
+.sn-cell {
+    width: 92px;
+    height: 92px;
+    background: #111;
+    border: 3px solid #fff;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.3rem;
+    cursor: pointer;
+    transition: .15s;
+}
+
+.sn-cell.open {
+    background: #fff8dc;
+    color: #111;
+    border-color: var(--gold);
+}
+
+.sn-cell.sel {
+    background: var(--gold);
+    color: var(--red);
+    transform: scale(1.08);
+    box-shadow: 0 0 18px var(--gold);
+}
+
+.sn-target {
+    font-size: 3rem;
+    color: var(--gold);
+    margin: 8px 0;
+}
+
+.sn-panel-row {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+#sn-alert {
+    min-height: 34px;
+    font-size: 1.25rem;
+    color: #ffeb3b;
+    margin: 8px 0;
+    text-align: center;
+}
+
+@media (max-width: 650px) {
+    .gh-grid {
+        grid-template-columns: repeat(3, 90px);
+    }
+
+    .gh-card {
+        width: 90px;
+        height: 90px;
+    }
+
+    .tj-board {
+        grid-template-columns: repeat(3, 86px);
+        grid-template-rows: repeat(4, 86px);
+    }
+
+    .tj-cell {
+        width: 86px;
+        height: 86px;
+    }
+
+    .piece {
+        width: 76px;
+        height: 76px;
+    }
+
+    .rg-board {
+        grid-template-columns: repeat(3, 105px);
+        grid-template-rows: repeat(3, 105px);
+        gap: 12px;
+    }
+
+    .rg-cell {
+        width: 105px;
+        height: 105px;
+    }
+
+    .sn-board {
+        grid-template-columns: repeat(4, 72px);
+        grid-template-rows: repeat(4, 72px);
+    }
+
+    .sn-cell {
+        width: 72px;
+        height: 72px;
+        font-size: 1.7rem;
+    }
 }
 </style>
 </head>
@@ -458,36 +567,51 @@ body {
     <button class="btn" style="padding:15px 50px;font-size:1.5rem;" onclick="login()">접속하기</button>
 </div>
 
-<div id="s-home" class="screen" style="justify-content:center;height:100vh;">
+<div id="s-home" class="screen" style="justify-content:center;min-height:100vh;">
     <div id="welcome" style="font-size:1.4rem;color:#ccc;margin-bottom:8px;"></div>
-    <h1 style="font-size:3.2rem;color:var(--gold);margin-bottom:28px;">어떤 게임을 하시겠습니까?</h1>
+    <h1 style="font-size:3.2rem;color:var(--gold);margin-bottom:28px;text-align:center;">어떤 게임을 하시겠습니까?</h1>
+
     <div style="display:flex;flex-wrap:wrap;justify-content:center;">
         <div class="card" onclick="goLobby('GH')">
             <h2 style="font-size:2.3rem;color:#4CAF50;">결! 합!</h2>
             <p style="margin-top:8px;">9장 카드에서 합을 찾는 두뇌 게임</p>
         </div>
+
         <div class="card" onclick="goLobby('TJ')">
             <h2 style="font-size:2.3rem;color:#ffeb3b;">십이장기</h2>
             <p style="margin-top:8px;">3×4 보드, 왕 잡기 또는 끝줄 돌파!</p>
         </div>
+
         <div class="card" onclick="goLobby('RG')">
             <h2 style="font-size:2.3rem;color:#ff9800;">러시아 장기</h2>
             <p style="margin-top:8px;">큰 말로 덮어씌우는 3목 게임</p>
         </div>
+
+        <div class="card" onclick="goLobby('SN')">
+            <h2 style="font-size:2.3rem;color:#00e5ff;">같은 숫자 찾기</h2>
+            <p style="margin-top:8px;">10초 암기 후 타깃 넘버를 만드는 연산 게임</p>
+        </div>
     </div>
-    <button class="btn" onclick="logout()" style="margin-top:28px;background:#555;color:#fff;">로그아웃</button>
+
+    <div style="margin-top:28px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+        <button class="btn" onclick="logout()" style="background:#555;color:#fff;">로그아웃</button>
+        <button class="btn" onclick="clearFakeRecords()" style="background:#222;color:#fff;">허구 기록 정리</button>
+    </div>
 </div>
 
 <div id="s-lobby" class="screen">
     <h1 id="lobby-title" style="font-size:2.8rem;color:var(--gold);">로비</h1>
+
     <div style="margin:18px 0;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
-        <button class="btn" onclick="createRoom(false)" style="background:#4CAF50;color:#fff;">+ 유저와 대결 (방 만들기)</button>
+        <button class="btn" onclick="createRoom(false)" style="background:#4CAF50;color:#fff;">+ 유저와 대결</button>
         <button class="btn" onclick="createRoom(true)" style="background:#2196F3;color:#fff;">🤖 AI와 연습하기</button>
     </div>
+
     <div class="room-box">
         <h3 style="margin-bottom:12px;color:var(--gold);">대기 중인 방</h3>
         <div id="room-list"></div>
     </div>
+
     <div class="room-box" style="margin-top:18px;background:rgba(0,0,0,.7);">
         <h3 style="color:var(--gold);margin-bottom:8px;">
             🏆 명예의 전당
@@ -495,13 +619,13 @@ body {
         </h3>
         <div id="rank-list"></div>
     </div>
+
     <button class="btn" onclick="goBackHome()" style="margin-top:18px;background:#555;color:#fff;">← 홈으로</button>
 </div>
 
 <div id="s-gh" class="screen">
     <h2 id="gh-round" style="color:var(--gold);font-size:1.9rem;">ROUND 1 / 5</h2>
     <div id="timer-bar"><div id="timer-fill-gh"></div></div>
-
     <div id="gh-alert-box"></div>
     <div id="gh-status" style="font-size:1.4rem;margin-bottom:10px;"></div>
 
@@ -542,16 +666,16 @@ body {
     <button class="btn" id="tj-start" style="display:none;margin-bottom:8px;background:#ff9800;color:#fff;padding:10px 30px;font-size:1.4rem;" onclick="startGame()">🚀 시작</button>
 
     <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
-        <div style="display:flex;flex-direction:column;align-items:center;width:440px;">
-            <div id="tj-n2" style="background:#2e7d32;padding:5px 14px;border-radius:5px;width:100%;text-align:center;margin-bottom:4px;">P2 (GREEN)</div>
+        <div style="display:flex;flex-direction:column;align-items:center;width:440px;max-width:95vw;">
+            <div id="tj-n2" style="background:#2e7d32;padding:5px 14px;border-radius:5px;width:100%;text-align:center;margin-bottom:4px;">P2</div>
             <div id="tj-h2" style="display:flex;flex-wrap:wrap;gap:4px;background:rgba(0,0,0,.3);padding:8px;border-radius:8px;min-height:78px;width:100%;justify-content:center;"></div>
         </div>
 
         <div class="tj-board" id="tj-board"></div>
 
-        <div style="display:flex;flex-direction:column;align-items:center;width:440px;">
+        <div style="display:flex;flex-direction:column;align-items:center;width:440px;max-width:95vw;">
             <div id="tj-h1" style="display:flex;flex-wrap:wrap;gap:4px;background:rgba(0,0,0,.3);padding:8px;border-radius:8px;min-height:78px;width:100%;justify-content:center;margin-bottom:4px;"></div>
-            <div id="tj-n1" style="background:#c62828;padding:5px 14px;border-radius:5px;width:100%;text-align:center;">P1 (RED)</div>
+            <div id="tj-n1" style="background:#c62828;padding:5px 14px;border-radius:5px;width:100%;text-align:center;">P1</div>
         </div>
     </div>
 
@@ -564,20 +688,56 @@ body {
 
     <div style="display:flex;gap:36px;align-items:center;flex-wrap:wrap;justify-content:center;">
         <div style="display:flex;flex-direction:column;align-items:center;">
-            <div id="rg-n1" style="color:#f44336;margin-bottom:8px;font-size:1.1rem;font-weight:bold;">P1 (RED)</div>
+            <div id="rg-n1" style="color:#f44336;margin-bottom:8px;font-size:1.1rem;font-weight:bold;">P1</div>
             <div class="rg-hand-box" id="rg-h1"></div>
         </div>
 
         <div class="rg-board" id="rg-board"></div>
 
         <div style="display:flex;flex-direction:column;align-items:center;">
-            <div id="rg-n2" style="color:#2196F3;margin-bottom:8px;font-size:1.1rem;font-weight:bold;">P2 (BLUE)</div>
+            <div id="rg-n2" style="color:#2196F3;margin-bottom:8px;font-size:1.1rem;font-weight:bold;">P2</div>
             <div class="rg-hand-box" id="rg-h2"></div>
         </div>
     </div>
 
     <div style="display:flex;gap:8px;margin-top:18px;flex-wrap:wrap;justify-content:center;">
         <button class="btn" id="rg-start" style="display:none;background:#ff9800;color:#fff;padding:14px 38px;font-size:1.4rem;" onclick="startGame()">🚀 시작</button>
+        <button class="btn" onclick="leaveGame()" style="background:#555;color:#fff;">로비로</button>
+    </div>
+</div>
+
+<div id="s-sn" class="screen">
+    <h2 style="color:var(--gold);font-size:1.9rem;margin-bottom:4px;">같은 숫자 찾기</h2>
+    <div id="sn-status" style="font-size:1.4rem;margin-bottom:8px;"></div>
+
+    <div class="sn-target">TARGET: <span id="sn-target">?</span></div>
+
+    <div style="font-size:1rem;color:#ddd;margin-bottom:8px;text-align:center;">
+        시작 후 10초 공개됩니다. 이후 알파벳 3개를 <b>숫자 → 연산자 → 숫자</b> 순서로 선택하세요.<br>
+        양쪽 합산 오답 3회마다 5초간 다시 공개됩니다.
+    </div>
+
+    <div id="sn-alert"></div>
+
+    <div class="sn-panel-row">
+        <div class="panel">
+            <div id="sn-n1" style="color:#4CAF50;font-size:1.1rem;">P1</div>
+            <div id="sn-s1" style="font-size:3rem;color:var(--gold);">0</div>
+        </div>
+
+        <div class="sn-board" id="sn-board"></div>
+
+        <div class="panel">
+            <div id="sn-n2" style="color:#2196F3;font-size:1.1rem;">P2</div>
+            <div id="sn-s2" style="font-size:3rem;color:var(--gold);">0</div>
+        </div>
+    </div>
+
+    <div id="sn-selected" style="margin-top:12px;font-size:1.2rem;color:#ffeb3b;"></div>
+
+    <div style="display:flex;gap:8px;margin-top:18px;flex-wrap:wrap;justify-content:center;">
+        <button class="btn" id="sn-start" style="display:none;background:#ff9800;color:#fff;padding:14px 38px;font-size:1.4rem;" onclick="startGame()">🚀 시작</button>
+        <button class="btn" id="sn-buzz" onclick="buzzSN()">버저!</button>
         <button class="btn" onclick="leaveGame()" style="background:#555;color:#fff;">로비로</button>
     </div>
 </div>
@@ -602,21 +762,18 @@ let myUid = null;
 let myName = null;
 let curType = null;
 let curRoom = null;
-
 let timerIv = null;
+let screenTickIv = null;
 let botBusy = false;
 let endHandled = false;
-
 let gameRef = null;
 let gameCb = null;
 let lobbyRef = null;
 let lobbyCb = null;
-
 let seenActionId = null;
 let seenHapTurnId = null;
 let actionTimeout = null;
 
-/* 공통 */
 function go(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
@@ -635,6 +792,7 @@ function cleanGame() {
     botBusy = false;
     endHandled = false;
     stopTimer();
+    clearInterval(screenTickIv);
     clearTimeout(actionTimeout);
     seenActionId = null;
     seenHapTurnId = null;
@@ -697,9 +855,16 @@ function updateRank() {
         let users = [];
 
         snap.forEach(c => {
-            if (c.key !== 'admin_placeholder') {
+            const u = c.val();
+
+            if (
+                c.key !== 'admin_placeholder' &&
+                c.key !== 'BOT' &&
+                u &&
+                typeof u.pin !== 'undefined'
+            ) {
                 users.push({
-                    ...c.val(),
+                    ...u,
                     id: c.key
                 });
             }
@@ -729,6 +894,34 @@ function updateRank() {
     });
 }
 
+function clearFakeRecords() {
+    if (!myUid) return alert('로그인 후 사용할 수 있습니다.');
+
+    if (!confirm('PIN 없는 허구 유저와 BOT 기록을 삭제하고, 실제 계정 전적을 0승 0패로 초기화할까요?')) return;
+
+    db.ref('users').once('value', snap => {
+        snap.forEach(c => {
+            const u = c.val();
+
+            if (
+                c.key === 'admin_placeholder' ||
+                c.key === 'BOT' ||
+                !u ||
+                typeof u.pin === 'undefined'
+            ) {
+                db.ref('users/' + c.key).remove();
+            } else {
+                db.ref('users/' + c.key).update({
+                    wins: 0,
+                    losses: 0
+                });
+            }
+        });
+    });
+
+    alert('허구 기록 및 기존 승패 기록을 정리했습니다.');
+}
+
 /* 로비 */
 function goLobby(type) {
     cleanLobby();
@@ -737,7 +930,8 @@ function goLobby(type) {
     const names = {
         GH: '결! 합!',
         TJ: '십이장기',
-        RG: '러시아 장기'
+        RG: '러시아 장기',
+        SN: '같은 숫자 찾기'
     };
 
     document.getElementById('lobby-title').innerText = names[type] + ' 로비';
@@ -835,6 +1029,22 @@ function createRoom(isPractice) {
         });
     }
 
+    if (curType === 'SN') {
+        const setup = makeSNSetup();
+
+        Object.assign(base, {
+            turn: 1,
+            scoreToWin: 10,
+            board: setup.board,
+            targets: setup.targets,
+            targetIdx: 0,
+            revealUntil: 0,
+            missCount: 0,
+            answerTurn: null,
+            lastAction: null
+        });
+    }
+
     db.ref('rooms/' + curType + '/' + id).set(base);
     enterRoom(id);
 }
@@ -879,6 +1089,7 @@ function enterRoom(id) {
         if (curType === 'GH') renderGH(room);
         if (curType === 'TJ') renderTJ(room);
         if (curType === 'RG') renderRG(room);
+        if (curType === 'SN') renderSN(room);
 
         if (room.status === 'FINISHED' && !endHandled) {
             endHandled = true;
@@ -902,6 +1113,7 @@ function enterRoom(id) {
             if (curType === 'GH' && !room.hapTurn) botGH(room);
             if (curType === 'TJ' && room.turn === 2) botTJ(room);
             if (curType === 'RG' && room.turn === 2) botRG(room);
+            if (curType === 'SN' && !room.answerTurn && (!room.revealUntil || Date.now() >= room.revealUntil)) botSN(room);
         }
     };
 
@@ -909,9 +1121,22 @@ function enterRoom(id) {
 }
 
 function startGame() {
-    db.ref('rooms/' + curType + '/' + curRoom).update({
+    const up = {
         status: 'PLAYING'
-    });
+    };
+
+    if (curType === 'SN') {
+        up.revealUntil = Date.now() + 10000;
+        up.answerTurn = null;
+        up.missCount = 0;
+        up.lastAction = {
+            id: Date.now(),
+            text: '10초 공개가 시작됩니다!',
+            ok: true
+        };
+    }
+
+    db.ref('rooms/' + curType + '/' + curRoom).update(up);
 }
 
 function endGame(winnerUid, room) {
@@ -955,7 +1180,6 @@ function makeGHBoard() {
     const sh = ['circle', 'triangle', 'square'];
     const co = ['red', 'blue', 'yellow'];
     const bg = ['black', 'white', 'gray'];
-
     const d = [];
 
     sh.forEach(s => {
@@ -985,18 +1209,14 @@ function renderGH(room) {
 
     if (room.hapTurn && room.hapTurn.id !== seenHapTurnId) {
         seenHapTurnId = room.hapTurn.id;
-
         const al = document.getElementById('gh-alert-box');
 
         if (al) {
-            if (room.hapTurn.uid === myUid) {
-                al.innerText = '내가 합을 외쳤습니다! 30초 안에 3장을 선택하세요.';
-                al.style.color = '#ffd700';
-            } else {
-                al.innerText = room.hapTurn.name + '님이 합을 외쳤습니다!';
-                al.style.color = '#2196F3';
-            }
+            al.innerText = room.hapTurn.uid === myUid
+                ? '내가 합을 외쳤습니다! 30초 안에 3장을 선택하세요.'
+                : room.hapTurn.name + '님이 합을 외쳤습니다!';
 
+            al.style.color = room.hapTurn.uid === myUid ? '#ffd700' : '#2196F3';
             al.style.display = 'block';
             al.classList.remove('gh-call-effect');
             void al.offsetWidth;
@@ -1019,7 +1239,6 @@ function renderGH(room) {
         al.style.display = 'block';
 
         clearTimeout(actionTimeout);
-
         actionTimeout = setTimeout(() => {
             al.style.display = 'none';
             document.querySelectorAll('.gh-card').forEach(c => {
@@ -1049,11 +1268,7 @@ function renderGH(room) {
         if (showResult && la.cards && la.cards.includes(i)) {
             classes += la.ok ? ' correct-sel' : ' wrong-sel';
         } else if (selC.includes(i)) {
-            if (room.hapTurn && room.hapTurn.uid === myUid) {
-                classes += ' sel';
-            } else {
-                classes += ' opponent-sel';
-            }
+            classes += room.hapTurn && room.hapTurn.uid === myUid ? ' sel' : ' opponent-sel';
         }
 
         d.className = classes;
@@ -1064,9 +1279,8 @@ function renderGH(room) {
 
             let ns = [...selC];
 
-            if (ns.includes(i)) {
-                ns = ns.filter(x => x !== i);
-            } else {
+            if (ns.includes(i)) ns = ns.filter(x => x !== i);
+            else {
                 if (ns.length >= 3) return;
                 ns.push(i);
             }
@@ -1088,11 +1302,8 @@ function renderGH(room) {
                     ? '#2196F3'
                     : '#ffeb3b';
 
-        if (card.s === 'triangle') {
-            sh.style.borderBottomColor = col;
-        } else {
-            sh.style.backgroundColor = col;
-        }
+        if (card.s === 'triangle') sh.style.borderBottomColor = col;
+        else sh.style.backgroundColor = col;
 
         d.appendChild(sh);
         bEl.appendChild(d);
@@ -1131,11 +1342,8 @@ function renderGH(room) {
         stBtn.style.display = 'none';
         stEl.innerText = hap ? room.hapTurn.name + '님이 합 찾는 중!' : '합! 또는 결!을 외치세요';
 
-        if (hap) {
-            startTimer(room.hapTurn.startTime, room.hapTurn.uid);
-        } else {
-            stopTimer();
-        }
+        if (hap) startTimer(room.hapTurn.startTime, room.hapTurn.uid);
+        else stopTimer();
     }
 }
 
@@ -1173,9 +1381,7 @@ function callHap() {
             return;
         }
 
-        if (!committed) {
-            alert('이미 다른 플레이어가 합을 외쳤습니다!');
-        }
+        if (!committed) alert('이미 다른 플레이어가 합을 외쳤습니다!');
     });
 }
 
@@ -1194,7 +1400,6 @@ function checkGH(selection) {
         const key = [...selection].sort((a, b) => a - b).join(',');
         const fh = toArr(r.foundHaps);
         const mk = r.p1.uid === myUid ? 'p1' : 'p2';
-
         const already = fh.includes(key);
 
         const action = {
@@ -1236,7 +1441,6 @@ function callGyul() {
 
         const ba = toArr(r.board);
         const fh = toArr(r.foundHaps);
-
         let rem = 0;
 
         for (let i = 0; i < 7; i++) {
@@ -1298,9 +1502,7 @@ function startTimer(startTime, hapUid) {
         const rem = 30 - Math.floor((Date.now() - startTime) / 1000);
         const fill = document.getElementById('timer-fill-gh');
 
-        if (fill) {
-            fill.style.width = Math.max(0, rem / 30 * 100) + '%';
-        }
+        if (fill) fill.style.width = Math.max(0, rem / 30 * 100) + '%';
 
         if (rem <= 0) {
             clearInterval(timerIv);
@@ -1400,7 +1602,6 @@ function renderTJ(room) {
 
     const selP = room.selectedPiece;
     const safeBoard = getTJBoard(room);
-
     const bEl = document.getElementById('tj-board');
     bEl.innerHTML = '';
 
@@ -1572,7 +1773,6 @@ function validTJ(sr, sc, tr, tc, t, o) {
     const adc = Math.abs(dc);
 
     if (adr === 0 && adc === 0) return false;
-
     if (t === 'wang') return adr <= 1 && adc <= 1;
     if (t === 'jang') return (adr === 1 && adc === 0) || (adr === 0 && adc === 1);
     if (t === 'sang') return adr === 1 && adc === 1;
@@ -1608,7 +1808,6 @@ function findTJKing(board, owner) {
 
 function isTJKingInCheck(board, owner) {
     const king = findTJKing(board, owner);
-
     if (!king) return true;
 
     const enemy = owner === 1 ? 2 : 1;
@@ -1707,7 +1906,6 @@ function renderRG(room) {
 
     const board = getRGBoard(room);
     const selP = room.selectedPiece;
-
     const bEl = document.getElementById('rg-board');
     bEl.innerHTML = '';
 
@@ -1836,14 +2034,9 @@ function handleRGClick(tIdx, room, board) {
 
 function rgHasLine(board, player) {
     const lines = [
-        [0,1,2],
-        [3,4,5],
-        [6,7,8],
-        [0,3,6],
-        [1,4,7],
-        [2,5,8],
-        [0,4,8],
-        [2,4,6]
+        [0,1,2], [3,4,5], [6,7,8],
+        [0,3,6], [1,4,7], [2,5,8],
+        [0,4,8], [2,4,6]
     ];
 
     for (const [a, b, c] of lines) {
@@ -1872,6 +2065,296 @@ function rgWin(board, currentPlayer) {
     return 0;
 }
 
+/* 같은 숫자 찾기 */
+const SN_LETTERS = 'ABCDEFGHIJKLMNOP'.split('');
+
+function makeSNSetup() {
+    const values = [1,2,3,4,5,6,7,8,9,10,11,12,'+','-','×','÷'];
+    const board = values
+        .map(v => ({ v }))
+        .sort(() => Math.random() - .5);
+
+    const targets = makeSNTargets(board).sort(() => Math.random() - .5);
+
+    return {
+        board,
+        targets
+    };
+}
+
+function makeSNTargets(board) {
+    const nums = [];
+    const ops = [];
+
+    board.forEach((cell, i) => {
+        if (typeof cell.v === 'number') nums.push({ idx: i, v: cell.v });
+        else ops.push({ idx: i, v: cell.v });
+    });
+
+    const set = new Set();
+
+    nums.forEach(a => {
+        nums.forEach(b => {
+            if (a.idx === b.idx) return;
+
+            ops.forEach(op => {
+                const val = calcSN(a.v, op.v, b.v);
+
+                if (Number.isInteger(val) && val > 0) {
+                    set.add(val);
+                }
+            });
+        });
+    });
+
+    return Array.from(set).sort((a, b) => a - b);
+}
+
+function calcSN(a, op, b) {
+    if (op === '+') return a + b;
+    if (op === '-') return a - b;
+    if (op === '×') return a * b;
+    if (op === '÷') {
+        if (b === 0) return null;
+        return a / b;
+    }
+    return null;
+}
+
+function renderSN(room) {
+    const myNum = room.p1.uid === myUid ? 1 : 2;
+    const playing = room.status === 'PLAYING';
+    const now = Date.now();
+    const reveal = playing && room.revealUntil && now < room.revealUntil;
+
+    clearInterval(screenTickIv);
+
+    if (playing && reveal) {
+        screenTickIv = setInterval(() => {
+            if (curType === 'SN' && curRoom) {
+                db.ref('rooms/SN/' + curRoom).once('value', s => {
+                    const r = s.val();
+                    if (r) renderSN(r);
+                });
+            }
+        }, 500);
+    }
+
+    document.getElementById('sn-n1').innerText = room.p1.name || 'P1';
+    document.getElementById('sn-s1').innerText = room.p1.score || 0;
+
+    if (room.p2) {
+        document.getElementById('sn-n2').innerText = room.p2.name || 'P2';
+        document.getElementById('sn-s2').innerText = room.p2.score || 0;
+    } else {
+        document.getElementById('sn-n2').innerText = '대기 중...';
+        document.getElementById('sn-s2').innerText = 0;
+    }
+
+    const target = toArr(room.targets)[room.targetIdx] || '?';
+    document.getElementById('sn-target').innerText = playing ? target : '?';
+
+    const stBtn = document.getElementById('sn-start');
+    const stEl = document.getElementById('sn-status');
+    const alertEl = document.getElementById('sn-alert');
+
+    if (room.lastAction) {
+        alertEl.innerText = room.lastAction.text || '';
+        alertEl.style.color = room.lastAction.ok ? '#4CAF50' : '#f44336';
+    } else {
+        alertEl.innerText = '';
+    }
+
+    if (room.status === 'WAITING') {
+        stBtn.style.display = room.p1.uid === myUid && room.p2 ? 'block' : 'none';
+        stEl.innerText = room.p1.uid === myUid
+            ? room.p2 ? '시작 버튼을 누르세요!' : '상대 대기 중...'
+            : '방장 시작 대기 중...';
+    } else if (room.status === 'FINISHED') {
+        stBtn.style.display = 'none';
+        stEl.innerText = room.winnerName ? '🏆 ' + room.winnerName + ' 승리!' : '게임 종료!';
+    } else if (reveal) {
+        const remain = Math.ceil((room.revealUntil - now) / 1000);
+        stBtn.style.display = 'none';
+        stEl.innerText = `🧠 공개 시간! ${remain}초 남음`;
+    } else if (room.answerTurn) {
+        stBtn.style.display = 'none';
+        stEl.innerText = room.answerTurn.name + '님이 답을 고르는 중!';
+    } else {
+        stBtn.style.display = 'none';
+        stEl.innerText = `타깃 넘버를 만들 수 있으면 버저를 누르세요! 오답 누적 ${room.missCount || 0}/3`;
+    }
+
+    const sel = room.answerTurn && room.answerTurn.selected
+        ? toArr(room.answerTurn.selected).map(Number)
+        : [];
+
+    const bEl = document.getElementById('sn-board');
+    bEl.innerHTML = '';
+
+    toArr(room.board).forEach((cell, i) => {
+        const d = document.createElement('div');
+        const selected = sel.includes(i);
+
+        d.className = 'sn-cell' + (reveal ? ' open' : '') + (selected ? ' sel' : '');
+        d.innerText = reveal || selected ? cell.v : SN_LETTERS[i];
+
+        d.onclick = () => {
+            if (!playing || reveal) return;
+            if (!room.answerTurn || room.answerTurn.uid !== myUid) return;
+
+            let ns = [...sel];
+
+            if (ns.includes(i)) ns = ns.filter(x => x !== i);
+            else {
+                if (ns.length >= 3) return;
+                ns.push(i);
+            }
+
+            db.ref('rooms/SN/' + curRoom + '/answerTurn/selected').set(ns);
+
+            if (ns.length === 3) {
+                setTimeout(() => checkSN(ns), 150);
+            }
+        };
+
+        bEl.appendChild(d);
+    });
+
+    const picked = sel.map(i => SN_LETTERS[i]).join(' → ');
+    document.getElementById('sn-selected').innerText = picked ? '선택: ' + picked : '';
+
+    document.getElementById('sn-buzz').disabled =
+        !playing || reveal || !!room.answerTurn;
+}
+
+function buzzSN() {
+    db.ref('rooms/SN/' + curRoom).transaction(room => {
+        if (!room) return room;
+        if (room.status !== 'PLAYING') return room;
+        if (room.answerTurn) return room;
+        if (room.revealUntil && Date.now() < room.revealUntil) return room;
+
+        const now = Date.now();
+
+        room.answerTurn = {
+            uid: myUid,
+            name: myName,
+            selected: [],
+            id: now + '_' + myUid
+        };
+
+        room.lastAction = {
+            id: now,
+            text: myName + '님이 버저를 눌렀습니다!',
+            ok: true
+        };
+
+        return room;
+    });
+}
+
+function checkSN(selection) {
+    db.ref('rooms/SN/' + curRoom).once('value', snap => {
+        const r = snap.val();
+
+        if (!r || !r.answerTurn || r.answerTurn.uid !== myUid) return;
+
+        const board = toArr(r.board);
+        const target = toArr(r.targets)[r.targetIdx];
+
+        const a = board[selection[0]] ? board[selection[0]].v : null;
+        const op = board[selection[1]] ? board[selection[1]].v : null;
+        const b = board[selection[2]] ? board[selection[2]].v : null;
+
+        const result = calcSN(a, op, b);
+
+        const ok =
+            typeof a === 'number' &&
+            typeof b === 'number' &&
+            ['+','-','×','÷'].includes(op) &&
+            result === target;
+
+        const mk = r.p1.uid === myUid ? 'p1' : 'p2';
+        const newScore = (r[mk].score || 0) + (ok ? 1 : 0);
+        const oldMiss = r.missCount || 0;
+        const nextMiss = ok ? 0 : oldMiss + 1;
+        const shouldReveal = !ok && nextMiss >= 3;
+
+        const action = {
+            id: Date.now(),
+            text: `${myName}: ${a} ${op} ${b} = ${result} ${ok ? '정답! (+1점)' : shouldReveal ? '오답! 3회 누적으로 5초 공개!' : '오답!'}`,
+            ok
+        };
+
+        if (ok && newScore >= (r.scoreToWin || 10)) {
+            db.ref('rooms/SN/' + curRoom).update({
+                [mk + '/score']: newScore,
+                answerTurn: null,
+                missCount: 0,
+                lastAction: action
+            });
+
+            return endGame(myUid, r);
+        }
+
+        const nextIdx = ok ? (r.targetIdx || 0) + 1 : (r.targetIdx || 0);
+        const targets = toArr(r.targets);
+
+        if (nextIdx >= targets.length) {
+            db.ref('rooms/SN/' + curRoom).update({
+                [mk + '/score']: newScore,
+                answerTurn: null,
+                missCount: 0,
+                lastAction: action
+            });
+
+            const p1s = mk === 'p1' ? newScore : (r.p1.score || 0);
+            const p2s = mk === 'p2' ? newScore : (r.p2 ? r.p2.score || 0 : 0);
+
+            return endGame(p1s >= p2s ? r.p1.uid : r.p2.uid, r);
+        }
+
+        const update = {
+            [mk + '/score']: newScore,
+            targetIdx: nextIdx,
+            answerTurn: null,
+            missCount: shouldReveal ? 0 : nextMiss,
+            lastAction: action
+        };
+
+        if (shouldReveal) {
+            update.revealUntil = Date.now() + 5000;
+        }
+
+        db.ref('rooms/SN/' + curRoom).update(update);
+    });
+}
+
+function findSNSolution(board, target) {
+    const nums = [];
+    const ops = [];
+
+    board.forEach((cell, i) => {
+        if (typeof cell.v === 'number') nums.push({ idx: i, v: cell.v });
+        else ops.push({ idx: i, v: cell.v });
+    });
+
+    for (const a of nums) {
+        for (const op of ops) {
+            for (const b of nums) {
+                if (a.idx === b.idx) continue;
+
+                if (calcSN(a.v, op.v, b.v) === target) {
+                    return [a.idx, op.idx, b.idx];
+                }
+            }
+        }
+    }
+
+    return null;
+}
+
 /* 봇 */
 function botGH(room) {
     botBusy = true;
@@ -1888,7 +2371,6 @@ function botGH(room) {
 
             const ba = toArr(r.board);
             const fh = toArr(r.foundHaps);
-
             let found = null;
 
             outer:
@@ -1971,8 +2453,6 @@ function botTJ(room) {
                     for (let tr = 0; tr < 4; tr++) {
                         for (let tc = 0; tc < 3; tc++) {
                             if (canTJMove(board, sr, sc, tr, tc, 2)) {
-                                const tar = board[tr][tc];
-
                                 moves.push({
                                     type: 'move',
                                     sr,
@@ -1980,7 +2460,7 @@ function botTJ(room) {
                                     tr,
                                     tc,
                                     t: p.t,
-                                    tar
+                                    tar: board[tr][tc]
                                 });
                             }
                         }
@@ -2032,9 +2512,7 @@ function botTJ(room) {
 
                 let mt = move.t;
 
-                if (mt === 'ja' && move.tr === 3) {
-                    mt = 'hu';
-                }
+                if (mt === 'ja' && move.tr === 3) mt = 'hu';
 
                 nb[move.tr][move.tc] = {
                     t: mt,
@@ -2131,9 +2609,7 @@ function botRG(room) {
                     s: m.s
                 });
 
-                if (m.type === 'board') {
-                    nb[m.sr].pop();
-                }
+                if (m.type === 'board') nb[m.sr].pop();
 
                 if (rgWin(nb, 2) === 2) {
                     best = m;
@@ -2150,11 +2626,8 @@ function botRG(room) {
                 s: move.s
             });
 
-            if (move.type === 'hand') {
-                nH.splice(move.hIdx, 1);
-            } else {
-                nb[move.sr].pop();
-            }
+            if (move.type === 'hand') nH.splice(move.hIdx, 1);
+            else nb[move.sr].pop();
 
             const win = rgWin(nb, 2);
 
@@ -2170,6 +2643,55 @@ function botRG(room) {
             });
         });
     }, 1500);
+}
+
+function botSN(room) {
+    botBusy = true;
+
+    setTimeout(() => {
+        botBusy = false;
+
+        db.ref('rooms/SN/' + curRoom).once('value', snap => {
+            const r = snap.val();
+
+            if (!r || r.status !== 'PLAYING') return;
+            if (r.answerTurn) return;
+            if (r.revealUntil && Date.now() < r.revealUntil) return;
+
+            const board = toArr(r.board);
+            const target = toArr(r.targets)[r.targetIdx];
+            const ans = findSNSolution(board, target);
+
+            if (!ans) return;
+
+            const ns = (r.p2.score || 0) + 1;
+
+            const action = {
+                id: Date.now(),
+                text: `🤖 컴퓨터 정답! ${board[ans[0]].v} ${board[ans[1]].v} ${board[ans[2]].v} = ${target}`,
+                ok: true
+            };
+
+            if (ns >= (r.scoreToWin || 10)) {
+                db.ref('rooms/SN/' + curRoom).update({
+                    'p2/score': ns,
+                    answerTurn: null,
+                    missCount: 0,
+                    lastAction: action
+                });
+
+                return endGame('BOT', r);
+            }
+
+            db.ref('rooms/SN/' + curRoom).update({
+                'p2/score': ns,
+                targetIdx: (r.targetIdx || 0) + 1,
+                answerTurn: null,
+                missCount: 0,
+                lastAction: action
+            });
+        });
+    }, 3500);
 }
 </script>
 </body>
