@@ -2230,17 +2230,29 @@
 
   async function createOnlineRoom(playerName){
     if(!ensureFirebase()) throw new Error('FIREBASE_NOT_CONFIGURED');
+    const uid = sanitizeKey(playerName);
     for(let attempt=0; attempt<6; attempt++){
       const code = generateRoomCode();
       const ref = fbDb.ref(roomPath(code));
       const snap = await ref.once('value');
       if(!snap.exists()){
-        await ref.set({
-          createdAt: firebase.database.ServerValue.TIMESTAMP,
-          players:{ red:{ name:playerName, connected:true } },
-          state:{ status:'waiting', board:{}, turn:null, turnDeadline:null, winner:null, winLine:null, moveSeq:0 }
-        });
-        ref.child('players/red/connected').onDisconnect().set(false);
+        const now = Date.now();
+        // 기존 index(7).html의 RG 방 데이터 구조를 그대로 사용하고,
+        // 러시아 장기 온라인 로직이 필요로 하는 state/players도 함께 기록한다.
+        const legacyBoard = Array.from({length:9},()=>[]);
+        const room = {
+          type:'RG', status:'WAITING', started:false, isPractice:false,
+          p1:{uid:uid,name:playerName,score:0}, p2:null,
+          turn:1, roundEnding:false, createdAt:now,
+          presence:{},
+          b:legacyBoard, h1:[1,1,2,2,3,3], h2:[1,1,2,2,3,3],
+          players:{red:{name:playerName,connected:true}},
+          state:{status:'waiting',board:{},turn:null,turnDeadline:null,winner:null,winLine:null,moveSeq:0}
+        };
+        room.presence[uid]={online:true,lastSeen:now};
+        await ref.set(room);
+        ref.child('presence/'+uid+'/online').onDisconnect().set(false);
+        ref.child('players/red/connected').onDisconnect().set(false).catch(()=>{});
         return code;
       }
     }
@@ -2255,10 +2267,16 @@
     const snap = await ref.once('value');
     if(!snap.exists()) throw new Error('ROOM_NOT_FOUND');
     const room = snap.val();
-    if(room.players && room.players.blue) throw new Error('ROOM_FULL');
-    if(!room.state || room.state.status!=='waiting') throw new Error('ROOM_ALREADY_STARTED');
-    await ref.child('players/blue').set({ name:playerName, connected:true });
-    ref.child('players/blue/connected').onDisconnect().set(false);
+    if(room.p2 || (room.players && room.players.blue)) throw new Error('ROOM_FULL');
+    if((room.status && room.status!=='WAITING') || (room.state && room.state.status!=='waiting')) throw new Error('ROOM_ALREADY_STARTED');
+    const uid = sanitizeKey(playerName);
+    const updates = {};
+    updates['p2']={uid:uid,name:playerName,score:0};
+    updates['players/blue']={name:playerName,connected:true};
+    updates['presence/'+uid]={online:true,lastSeen:Date.now()};
+    await ref.update(updates);
+    ref.child('presence/'+uid+'/online').onDisconnect().set(false);
+    ref.child('players/blue/connected').onDisconnect().set(false).catch(()=>{});
     return code;
   }
 
