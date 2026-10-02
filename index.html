@@ -14,8 +14,8 @@
   Realtime Database를 프로젝트에서 활성화해야 하며, 테스트 규칙 예시:
   { "rules": { ".read": true, ".write": true } }  (실서비스에는 더 엄격한 규칙 권장)
 -->
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyD1y7hpto_WOkwB_ia35epFfe3UjLbetCw",
@@ -2219,7 +2219,7 @@
     for(let i=0;i<4;i++) code += ROOM_CODE_CHARS[Math.floor(Math.random()*ROOM_CODE_CHARS.length)];
     return code;
   }
-  function roomPath(code){ return 'janggiRooms/'+code; }
+  function roomPath(code){ return 'rooms/RG/'+code; }
 
   function escapeHtml(s){
     return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -2522,7 +2522,9 @@
       INVALID_CODE:'방 코드는 4자리입니다.',
       ROOM_CODE_EXHAUSTED:'방 생성에 실패했습니다. 다시 시도해주세요.'
     };
-    return map[msg] || '연결 중 문제가 발생했습니다. 다시 시도해주세요.';
+    if(msg && /PERMISSION_DENIED|Permission denied|permission/i.test(msg)) return 'Firebase 권한 오류입니다. 첫 번째 앱과 같은 Realtime Database 규칙을 사용해야 합니다.';
+    if(msg && /NETWORK_ERROR|network/i.test(msg)) return 'Firebase 네트워크 연결 오류입니다. 인터넷 연결과 Firebase Realtime Database 상태를 확인해주세요.';
+    return map[msg] || ('연결 중 문제가 발생했습니다. 다시 시도해주세요. ('+(msg||'알 수 없는 오류')+')');
   }
 
   function openRecordsModal(){
