@@ -527,6 +527,8 @@
     max-width:520px; width:100%; margin:0 auto;
     display:flex; flex-direction:column; align-items:center; gap:8px;
   }
+  /* 온라인에서 사파이어(참가자)로 둘 때: 내 진영이 아래쪽에 오도록 위아래를 뒤집는다 (보드 칸도 JS에서 180° 뒤집어 그림) */
+  .tj-table.flip-view{flex-direction:column-reverse;}
   .tj-panel{width:100%; max-width:360px; padding:11px;}
   .tj-hand-label{font-size:9.5px; letter-spacing:.1em; color:var(--ivory-dim); margin-top:6px;}
   .tj-hand{
@@ -866,7 +868,7 @@
           <div class="online-actions">
             <button class="online-action-btn primary" id="btn-create-room">방 만들기</button>
             <div class="join-row">
-              <input type="text" id="input-room-code" class="text-input code-input" placeholder="코드" maxlength="4">
+              <input type="text" id="input-room-code" class="text-input code-input" placeholder="코드 6자리" maxlength="6">
               <button class="online-action-btn" id="btn-join-room">참가하기</button>
             </div>
           </div>
@@ -1389,6 +1391,7 @@
           <li><b>더 큰 말은 작은 말 위에 놓아 덮을 수 있습니다.</b> 덮인 말은 위의 말이 옮겨질 때까지 보이지 않습니다.</li>
           <li>한 수를 두는 제한 시간은 <b>20초</b>입니다. 시간을 넘기면 차례가 상대에게 넘어갑니다.</li>
           <li>가로·세로·대각선 중 한 줄에 자신의 말(맨 위에 보이는 말) <b>3개를 먼저 나란히 놓으면 승리</b>합니다.</li>
+          <li>내 말을 옮기다가 아래에 있던 <b>상대의 3개 줄이 드러나면 상대가 승리</b>합니다. 단, 같은 수로 <b>내 줄도 함께 완성되면 내가 승리</b>합니다.</li>
         </ol>
       </div>
       <button class="modal-close-btn" id="btn-close-rules">확인</button>
@@ -1459,6 +1462,7 @@
         <label class="admin-toggle-row"><input type="checkbox" id="toggle-russian" checked><span>러시아 장기</span></label>
         <label class="admin-toggle-row"><input type="checkbox" id="toggle-twelve" checked><span>십이장기</span></label>
         <label class="admin-toggle-row"><input type="checkbox" id="toggle-bw" checked><span>흑과 백</span></label>
+        <label class="admin-toggle-row"><input type="checkbox" id="toggle-gh" checked><span>결!합!</span></label>
         <button class="online-action-btn primary admin-save-btn" id="btn-admin-save-visibility">표시 설정 저장</button>
         <div class="admin-msg" id="admin-visibility-msg"></div>
       </div>
@@ -1486,6 +1490,11 @@
           <span class="admin-record-name">흑과 백</span>
           <button class="admin-mini-btn" data-path="bwRecords" data-name="흑과 백" data-action="download">다운로드</button>
           <button class="admin-mini-btn danger" data-path="bwRecords" data-name="흑과 백" data-action="delete">삭제</button>
+        </div>
+        <div class="admin-record-row">
+          <span class="admin-record-name">결!합!</span>
+          <button class="admin-mini-btn" data-path="ghRecords" data-name="결!합!" data-action="download">다운로드</button>
+          <button class="admin-mini-btn danger" data-path="ghRecords" data-name="결!합!" data-action="delete">삭제</button>
         </div>
         <div class="admin-msg" id="admin-records-msg"></div>
       </div>
@@ -1526,24 +1535,6 @@
     return counts;
   }
 
-  /* Firebase Realtime Database는 빈 배열/희소 배열을 안전하게 저장하지 못하므로
-     (해당 인덱스가 통째로 사라지거나 배열이 객체로 바뀌는 문제) board를
-     "칸 번호(문자열) -> 말 배열" 객체로 직렬화해서 주고받는다 */
-  function serializeBoard(board){
-    const obj = {};
-    board.forEach((cell,i)=>{ if(cell.length) obj[i] = cell; });
-    return obj;
-  }
-  function deserializeBoard(obj){
-    const board = emptyBoard();
-    if(obj){
-      Object.keys(obj).forEach(k=>{
-        const i = parseInt(k,10);
-        if(i>=0 && i<9 && Array.isArray(obj[k])) board[i] = obj[k];
-      });
-    }
-    return board;
-  }
   function findPieceCell(board, id){
     for(let c=0;c<9;c++){ if(board[c].some(p=>p.id===id)) return c; }
     return -1;
@@ -1585,12 +1576,21 @@
     return {board:nb, reserve:nr};
   }
 
-  function checkWinner(board){
+  /* 승리 판정.
+     한 수로 두 줄이 동시에 보이게 되는 경우(내 말을 옮겨 상대 줄이 드러나는 동시에 내 줄도 완성되는 경우)에는
+     방금 수를 둔 사람(mover)이 승리한다. (mover를 모르면 먼저 발견된 줄 기준)
+     내 말을 들어 올려 상대 줄만 드러난 경우는 종전처럼 상대가 승리한다. */
+  function checkWinner(board, mover){
+    let first = null, preferred = null;
     for(const line of LINES){
       const [a,b,c] = line.map(i=>topOwner(board,i));
-      if(a && a===b && b===c) return {owner:a, line};
+      if(a && a===b && b===c){
+        const hit = {owner:a, line};
+        if(!first) first = hit;
+        if(mover && a===mover && !preferred) preferred = hit;
+      }
     }
-    return null;
+    return preferred || first;
   }
 
   function evaluate(board, reserve, forOwner){
@@ -1612,7 +1612,7 @@
   }
 
   function minimax(board, reserve, turnOwner, aiOwner, depth, alpha, beta){
-    const win = checkWinner(board);
+    const win = checkWinner(board, OPP[turnOwner]); // 직전에 수를 둔 쪽 = 지금 차례가 아닌 쪽
     if(win) return win.owner===aiOwner ? 9000+depth : -9000-depth;
     if(depth===0) return evaluate(board, reserve, aiOwner);
     const moves = getLegalMoves(board, reserve, turnOwner);
@@ -1632,7 +1632,7 @@
   function winningMoves(board, reserve, owner, moves){
     return moves.filter(m=>{
       const {board:nb} = applyMove(board, reserve, owner, m);
-      const w = checkWinner(nb);
+      const w = checkWinner(nb, owner);
       return w && w.owner===owner;
     });
   }
@@ -1687,7 +1687,14 @@
   let actx = null;
   const Sound = {
     enabled:true,
-    ctx(){ if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)(); return actx; },
+    ctx(){
+      if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)();
+      // iPad/Safari 등은 오디오가 'suspended' 상태로 시작할 수 있어 사용자 조작 시점에 깨워 준다
+      if(actx.state==='suspended' && typeof actx.resume==='function'){
+        try{ const p = actx.resume(); if(p && p.catch) p.catch(()=>{}); }catch(e){}
+      }
+      return actx;
+    },
     tone(freq, dur, type, gain, delay){
       if(!this.enabled) return;
       try{
@@ -1729,10 +1736,11 @@
     over:false, winner:null, winLine:null,
     pieceEls:{}, // id -> element
     aiThinking:false,
+    _aiToken:0,  // 이전 판에서 예약된 AI 수가 새 판에서 실행되지 않게 하는 표식
     online:{
       active:false, roomCode:null, myColor:null, playerName:null, opponentName:null,
       roomRef:null, listenerRef:null, turnDeadline:null, connected:false,
-      enteredPlaying:false, recordWriteAttempted:false
+      enteredPlaying:false, recordWriteAttempted:false, presenceTimer:null, lastRoom:null
     }
   };
 
@@ -1851,7 +1859,7 @@
       $('#turn-caption').innerHTML='&nbsp;';
     } else if(S.mode==='online'){
       const mine = S.turn===S.online.myColor;
-      $('#turn-caption').innerHTML = mine ? '<b>당신</b>의 차례입니다' : `<b>${S.online.opponentName||'상대'}</b>의 차례입니다`;
+      $('#turn-caption').innerHTML = mine ? '<b>당신</b>의 차례입니다' : `<b>${escapeHtml(S.online.opponentName||'상대')}</b>의 차례입니다`;
     } else if(!isAiTurn){
       const name = S.turn==='red' ? '루비 진영' : '사파이어 진영';
       $('#turn-caption').innerHTML = `<b>${name}</b>의 차례입니다`;
@@ -1916,6 +1924,13 @@
   function onCellActivate(cellIndex){
     if(!currentIsHumanTurn()) return;
     const top = topOf(S.board, cellIndex);
+
+    // 이미 말을 골라 둔 상태에서, 그 말을 놓을 수 있는 칸(내 작은 말 위 포함)을 누르면 바로 놓는다.
+    // (규칙상 큰 말은 작은 말이면 내 말이든 상대 말이든 덮을 수 있고, 파란 하이라이트도 그렇게 표시된다.)
+    if(S.selection && isLegalTarget(cellIndex)){
+      executeSelection(cellIndex);
+      return;
+    }
 
     // 자신의 말을 클릭: 새로 선택하거나, 다른 말을 고르던 중이면 선택을 전환하거나, 같은 말이면 해제
     if(top && top.owner===S.turn){
@@ -2015,7 +2030,7 @@
   }
 
   function finishTurnAfterMove(mover){
-    const win = checkWinner(S.board);
+    const win = checkWinner(S.board, mover);
     if(win){
       endGame(win.owner, win.line);
       return;
@@ -2055,7 +2070,7 @@
   function updateOnlineTimerFromDeadline(){
     if(S.over || !S.online.turnDeadline) return;
     const prevCeil = Math.ceil(S.timeLeft||0);
-    const remain = Math.max(0, (S.online.turnDeadline - Date.now())/1000);
+    const remain = Math.max(0, (S.online.turnDeadline - serverNow())/1000);
     S.timeLeft = remain;
     const nowCeil = Math.ceil(remain);
     if(nowCeil<=5 && nowCeil>0 && nowCeil!==prevCeil) Sound.tick();
@@ -2085,11 +2100,12 @@
     if(S.mode!=='ai' || S.turn!==S.aiOwner) return;
     updateTurnUI();
     const delay = 550 + Math.random()*650;
-    setTimeout(runAiMove, delay);
+    const token = ++S._aiToken;   // 새로 예약하면 이전 예약은 무효
+    setTimeout(()=>{ if(token===S._aiToken) runAiMove(); }, delay);
   }
 
   function runAiMove(){
-    if(S.over) return;
+    if(S.over || S.mode!=='ai' || S.turn!==S.aiOwner) return;
     const move = getAiMove(S.board, S.reserve, S.aiOwner, S.aiDifficulty);
     if(!move){ // 둘 곳이 없는 극히 예외적 상황: 턴 넘김
       S.turn = OPP[S.turn]; resetTimer(); updateTurnUI(); return;
@@ -2126,16 +2142,21 @@
   /* =====================================================
      승리 처리
   ===================================================== */
+  // 승리한 줄의 칸과 맨 위 말을 강조 (로컬/AI 대결과 온라인 대결 공용)
+  function highlightWinLine(line){
+    (line||[]).forEach(idx=>{
+      const cellEl = $('.cell[data-index="'+idx+'"]');
+      if(cellEl) cellEl.classList.add('win-cell');
+      const t = topOf(S.board, idx);
+      if(t && t.id && S.pieceEls[t.id]) S.pieceEls[t.id].classList.add('win-piece');
+    });
+  }
+
   function endGame(owner, line){
     S.over = true; S.winner = owner; S.winLine = line;
     stopTimer();
     updateTurnUI();
-    line.forEach(idx=>{
-      const cellEl = $('.cell[data-index="'+idx+'"]');
-      cellEl.classList.add('win-cell');
-      const id = topOf(S.board, idx).id;
-      S.pieceEls[id].classList.add('win-piece');
-    });
+    highlightWinLine(line);
     Sound.win();
     setTimeout(()=>{
       const isRed = owner==='red';
@@ -2174,6 +2195,7 @@
     S.selection=null;
     S.over=false; S.winner=null; S.winLine=null;
     S.timeLeft=TURN_SECONDS;
+    S._aiToken++;   // 이전 판에서 예약된 AI 수 무효화
     stopTimer();
     buildStaticDom();
     buildPieces();
@@ -2200,8 +2222,40 @@
      - reserve는 저장하지 않고 board로부터 매번 계산(단일 진실 공급원)
      - 턴 전환·타임아웃·동시 시작은 모두 transaction으로 경합을 방지
   ===================================================== */
-  const ROOM_CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  /* =====================================================
+     러시아 장기 온라인 대결 — 기존 index (7).html Firebase 구조 그대로 사용
+     저장 경로: rooms/RG/{방코드}
+     방 데이터: type/status/started/isPractice/p1/p2/turn/roundEnding/
+               createdAt/presence/b/h1/h2
+  ===================================================== */
   let fbDb = null, fbReady = false;
+
+  /* 서버 시각 보정 — 제한 시간(turnDeadline)과 접속 시각(lastSeen)은 여러 기기가 함께 비교하므로
+     기기 시계가 몇 초 틀려도 같은 값으로 보이도록 Firebase의 .info/serverTimeOffset 만큼 보정한다. */
+  let serverOffsetMs = 0;
+  function serverNow(){ return Date.now() + serverOffsetMs; }
+
+  /* 연결 감시 — 와이파이가 잠깐 끊겼다 돌아오면 서버가 onDisconnect 예약을 이미 실행(예: connected=false)해
+     사라졌으므로, 다시 연결될 때 각 게임이 등록해 둔 콜백으로 "접속 중" 표시를 되돌리고 예약을 다시 건다. */
+  const reconnectHooks = [];
+  let fbWasConnected = false;
+  function watchFirebaseInfo(){
+    try{
+      fbDb.ref('.info/serverTimeOffset').on('value', snap=>{
+        const v = snap.val();
+        if(typeof v==='number' && isFinite(v)) serverOffsetMs = v;
+      });
+      fbDb.ref('.info/connected').on('value', snap=>{
+        const on = snap.val()===true;
+        if(on && !fbWasConnected){
+          reconnectHooks.forEach(fn=>{ try{ fn(); }catch(e){ console.warn('reconnect hook failed', e); } });
+        }
+        fbWasConnected = on;
+      });
+    }catch(e){
+      console.warn('firebase info watch failed', e);
+    }
+  }
 
   function ensureFirebase(){
     if(fbReady) return true;
@@ -2210,379 +2264,688 @@
       if(!firebase.apps || !firebase.apps.length) firebase.initializeApp(firebaseConfig);
       fbDb = firebase.database();
       fbReady = true;
+      watchFirebaseInfo();
       return true;
-    }catch(e){ console.error('Firebase init failed', e); return false; }
+    }catch(e){
+      console.error('Firebase init failed', e);
+      return false;
+    }
   }
 
+  // 다른 게임(십이 장기·흑과 백·결! 합!)에서 사용하는 기존 4자리 방 코드
+  const ROOM_CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
   function generateRoomCode(){
     let code='';
     for(let i=0;i<4;i++) code += ROOM_CODE_CHARS[Math.floor(Math.random()*ROOM_CODE_CHARS.length)];
     return code;
   }
+
+  // 러시아 장기는 기존 index (7)의 6자리 방 코드 형식을 사용
+  function generateRussianRoomCode(){
+    return Math.random().toString(36).slice(2,8).toUpperCase();
+  }
+
   function roomPath(code){ return 'rooms/RG/'+code; }
 
-  function escapeHtml(s){
-    return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  }
   function sanitizeKey(name){
-    return String(name).trim().slice(0,20).replace(/[.#$\[\]\/]/g,'_') || '익명';
+    return String(name||'').trim().slice(0,20).replace(/[.#$\[\]\/]/g,'_') || '익명';
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // 첫 번째 앱의 roomBase('RG', false)와 동일한 구조를 사용합니다.
+  function legacyRoomBase(playerName){
+    const now = serverNow();
+    const uid = sanitizeKey(playerName);
+    return {
+      type:'RG',
+      status:'WAITING',
+      started:false,
+      isPractice:false,
+      p1:{uid:uid,name:playerName,score:0},
+      p2:null,
+      turn:1,
+      roundEnding:false,
+      createdAt:now,
+      presence:{[uid]:{online:true,lastSeen:now}},
+      b:Array.from({length:9},()=>[]),
+      h1:[1,1,2,2,3,3],
+      h2:[1,1,2,2,3,3]
+    };
+  }
+
+  function legacyBoardToS(b, prevBoard){
+    const prev = prevBoard || emptyBoard();
+    const raw = Array.from({length:9},()=>[]);
+    const board = emptyBoard();
+
+    for(let i=0;i<9;i++){
+      const cell = b && b[i] ? (Array.isArray(b[i]) ? b[i] : Object.values(b[i])) : [];
+      cell.forEach(p=>{
+        if(!p) return;
+        raw[i].push({
+          owner:Number(p.o)===1?'red':'blue',
+          size:Number(p.s)||1,
+          id:null
+        });
+      });
+    }
+
+    // 같은 칸에 남아 있는 말부터 기존 ID를 보존합니다.
+    const remainingOld = [];
+    for(let i=0;i<9;i++){
+      (prev[i]||[]).forEach(p=>{
+        remainingOld.push({cell:i, owner:p.owner, size:p.size, id:p.id});
+      });
+    }
+
+    for(let i=0;i<9;i++){
+      for(const np of raw[i]){
+        const at = remainingOld.findIndex(op =>
+          op.cell===i && op.owner===np.owner && op.size===np.size
+        );
+        if(at>=0){
+          np.id = remainingOld[at].id;
+          remainingOld.splice(at,1);
+        }
+      }
+    }
+
+    // 이동하거나 새로 내려놓은 말은 남은 같은 종류의 기존 ID를 우선 사용합니다.
+    // 남는 ID가 없으면 해당 종류의 예비 말 ID를 사용합니다.
+    const reserveIds = [];
+    for(const owner of ['red','blue']){
+      for(const size of [1,2,3]){
+        for(let idx=0;idx<2;idx++){
+          reserveIds.push({owner,size,id:pieceId(owner,size,idx)});
+        }
+      }
+    }
+
+    for(let i=0;i<9;i++){
+      for(const np of raw[i]){
+        if(np.id) continue;
+        const at = remainingOld.findIndex(op =>
+          op.owner===np.owner && op.size===np.size
+        );
+        if(at>=0){
+          np.id = remainingOld[at].id;
+          remainingOld.splice(at,1);
+          continue;
+        }
+        const ri = reserveIds.findIndex(x =>
+          x.owner===np.owner && x.size===np.size && x.id &&
+          !raw.some(c=>c.some(p=>p.id===x.id))
+        );
+        if(ri>=0){
+          np.id = reserveIds[ri].id;
+        }
+      }
+    }
+
+    for(let i=0;i<9;i++){
+      raw[i].forEach(p=>{
+        if(!p.id){
+          const used = new Set(board.flat().map(x=>x.id));
+          for(let idx=0;idx<2;idx++){
+            const id=pieceId(p.owner,p.size,idx);
+            if(!used.has(id)){ p.id=id; break; }
+          }
+        }
+        board[i].push(p);
+      });
+    }
+    return board;
+  }
+
+  function sBoardToLegacy(board){
+    return board.map(cell=>cell.map(p=>({
+      o:p.owner==='red'?1:2,
+      s:p.size
+    })));
+  }
+
+  function legacyHandsFromBoard(board){
+    const h={1:[1,1,2,2,3,3],2:[1,1,2,2,3,3]};
+    board.forEach(cell=>cell.forEach(p=>{
+      const a=h[p.owner==='red'?1:2];
+      const idx=a.indexOf(p.size);
+      if(idx>=0) a.splice(idx,1);
+    }));
+    return h;
+  }
+
+  function startOnlinePresence(ref, uid){
+    stopOnlinePresence();
+    if(!ref || !uid) return;
+
+    const presenceRef = ref.child('presence/'+uid);
+    presenceRef.set({online:true,lastSeen:serverNow()}).catch(e=>{
+      console.warn('presence write failed', e);
+    });
+    presenceRef.child('online').onDisconnect().set(false).catch(e=>{
+      console.warn('presence onDisconnect setup failed', e);
+    });
+
+    S.online.presenceTimer = setInterval(()=>{
+      presenceRef.update({online:true,lastSeen:serverNow()}).catch(e=>{
+        console.warn('presence update failed', e);
+      });
+    },10000);
+  }
+
+  // 연결이 복구되면 접속 표시를 즉시 되돌리고, 서버가 이미 실행해 버린 onDisconnect 예약을 다시 건다
+  reconnectHooks.push(()=>{
+    if(!S.online.active || !S.online.roomRef || !S.online.playerName || !S.online.presenceTimer) return;
+    const presenceRef = S.online.roomRef.child('presence/'+sanitizeKey(S.online.playerName));
+    presenceRef.update({online:true,lastSeen:serverNow()}).catch(()=>{});
+    presenceRef.child('online').onDisconnect().set(false).catch(()=>{});
+  });
+
+  function stopOnlinePresence(){
+    if(S.online.presenceTimer){
+      clearInterval(S.online.presenceTimer);
+      S.online.presenceTimer=null;
+    }
   }
 
   async function createOnlineRoom(playerName){
     if(!ensureFirebase()) throw new Error('FIREBASE_NOT_CONFIGURED');
+
+    const code = generateRussianRoomCode();
+    const ref = fbDb.ref(roomPath(code));
+
+    // 첫 번째 앱과 같이 방 본체를 먼저 생성합니다.
+    await ref.set(legacyRoomBase(playerName));
+
     const uid = sanitizeKey(playerName);
-    for(let attempt=0; attempt<6; attempt++){
-      const code = generateRoomCode();
-      const ref = fbDb.ref(roomPath(code));
-      const snap = await ref.once('value');
-      if(!snap.exists()){
-        const now = Date.now();
-        // 기존 index(7).html의 RG 방 데이터 구조를 그대로 사용하고,
-        // 러시아 장기 온라인 로직이 필요로 하는 state/players도 함께 기록한다.
-        const legacyBoard = Array.from({length:9},()=>[]);
-        const room = {
-          type:'RG', status:'WAITING', started:false, isPractice:false,
-          p1:{uid:uid,name:playerName,score:0}, p2:null,
-          turn:1, roundEnding:false, createdAt:now,
-          presence:{},
-          b:legacyBoard, h1:[1,1,2,2,3,3], h2:[1,1,2,2,3,3],
-          players:{red:{name:playerName,connected:true}},
-          state:{status:'waiting',board:{},turn:null,turnDeadline:null,winner:null,winLine:null,moveSeq:0}
-        };
-        room.presence[uid]={online:true,lastSeen:now};
-        await ref.set(room);
-        ref.child('presence/'+uid+'/online').onDisconnect().set(false);
-        ref.child('players/red/connected').onDisconnect().set(false).catch(()=>{});
-        return code;
-      }
-    }
-    throw new Error('ROOM_CODE_EXHAUSTED');
+    startOnlinePresence(ref,uid);
+    return code;
   }
 
   async function joinOnlineRoom(codeRaw, playerName){
     if(!ensureFirebase()) throw new Error('FIREBASE_NOT_CONFIGURED');
+
     const code = codeRaw.toUpperCase().trim();
-    if(code.length!==4) throw new Error('INVALID_CODE');
+    if(code.length!==6) throw new Error('INVALID_CODE');
+
     const ref = fbDb.ref(roomPath(code));
     const snap = await ref.once('value');
-    if(!snap.exists()) throw new Error('ROOM_NOT_FOUND');
     const room = snap.val();
-    if(room.p2 || (room.players && room.players.blue)) throw new Error('ROOM_FULL');
-    if((room.status && room.status!=='WAITING') || (room.state && room.state.status!=='waiting')) throw new Error('ROOM_ALREADY_STARTED');
-    const uid = sanitizeKey(playerName);
-    const updates = {};
-    updates['p2']={uid:uid,name:playerName,score:0};
-    updates['players/blue']={name:playerName,connected:true};
-    updates['presence/'+uid]={online:true,lastSeen:Date.now()};
-    await ref.update(updates);
-    ref.child('presence/'+uid+'/online').onDisconnect().set(false);
-    ref.child('players/blue/connected').onDisconnect().set(false).catch(()=>{});
+
+    if(!room) throw new Error('ROOM_NOT_FOUND');
+    if(!room.p1 || !room.p1.uid) throw new Error('ROOM_INVALID');
+    if(room.p1.uid===sanitizeKey(playerName)) throw new Error('SAME_NAME');
+    if(room.p2) throw new Error('ROOM_FULL');
+    if(room.started || room.status!=='WAITING') throw new Error('ROOM_ALREADY_STARTED');
+
+    // 두 명이 동시에 참가 버튼을 누르는 경합을 막습니다.
+    const tx = await ref.transaction(current=>{
+      if(!current || current.status!=='WAITING' || current.started || current.p2) return;
+      current.p2={uid:sanitizeKey(playerName),name:playerName,score:0};
+      return current;
+    });
+
+    if(!tx.committed){
+      const latest = tx.snapshot && tx.snapshot.val();
+      if(latest && latest.p2) throw new Error('ROOM_FULL');
+      throw new Error('ROOM_JOIN_FAILED');
+    }
+
+    startOnlinePresence(ref,sanitizeKey(playerName));
     return code;
   }
 
-  function tryStartRoomIfReady(code){
-    fbDb.ref(roomPath(code)).transaction(room=>{
-      if(!room || !room.state) return room;
-      if(room.state.status!=='waiting') return room;
-      if(!room.players || !room.players.red || !room.players.blue) return room;
-      room.state.status='playing';
-      room.state.turn = Math.random()<0.5 ? 'red' : 'blue';
-      room.state.turnDeadline = Date.now() + TURN_SECONDS*1000;
-      return room;
+  function startLegacyRoomIfReady(room){
+    if(!fbDb || !S.online.roomCode || S.online.myColor!=='red') return;
+    if(!room || room.started || room.roundEnding || !room.p1 || !room.p2) return;
+
+    // 같은 방 상태가 여러 번 도착해도 시작은 딱 한 번만 되도록 transaction으로 처리한다.
+    // 선공(turn)은 이때 한 번만 무작위로 정한다. (1=루비 방장, 2=사파이어 참가자)
+    fbDb.ref(roomPath(S.online.roomCode)).transaction(cur=>{
+      if(!cur) return cur;
+      if(cur.started || cur.roundEnding || !cur.p1 || !cur.p2) return; // 이미 시작됨 → 중단
+      cur.status='PLAYING';
+      cur.started=true;
+      cur.turn=Math.random()<0.5?1:2;
+      cur.roundEnding=false;
+      cur.lastWin=null;
+      cur.b=Array.from({length:9},()=>[]);
+      cur.h1=[1,1,2,2,3,3];
+      cur.h2=[1,1,2,2,3,3];
+      cur.turnDeadline=serverNow()+TURN_SECONDS*1000;
+      return cur;
+    }).catch(e=>{
+      console.error('room start failed',e);
     });
-  }
-
-  function commitOnlineMove(newBoard){
-    if(!S.online.roomRef) return;
-    const win = checkWinner(newBoard);
-    const expectedTurn = S.turn;
-    S.online.roomRef.transaction(room=>{
-      if(!room || !room.state) return room;
-      if(room.state.status!=='playing') return room;
-      if(room.state.turn !== expectedTurn) return; // 낡은 시도 - 중단
-      room.state.board = serializeBoard(newBoard);
-      room.state.moveSeq = (room.state.moveSeq||0)+1;
-      if(win){
-        room.state.status='finished';
-        room.state.winner = win.owner;
-        room.state.winLine = win.line;
-        room.state.turn = null;
-        room.state.turnDeadline = null;
-      } else {
-        room.state.turn = OPP[expectedTurn];
-        room.state.turnDeadline = Date.now() + TURN_SECONDS*1000;
-      }
-      return room;
-    });
-  }
-
-  function attemptOnlineTimeoutPass(){
-    if(!S.online.roomRef || S.over) return;
-    S.online.roomRef.transaction(room=>{
-      if(!room || !room.state) return room;
-      if(room.state.status!=='playing') return room;
-      if(!room.state.turnDeadline || Date.now() < room.state.turnDeadline-200) return room;
-      room.state.turn = room.state.turn==='red' ? 'blue' : 'red';
-      room.state.turnDeadline = Date.now() + TURN_SECONDS*1000;
-      room.state.moveSeq = (room.state.moveSeq||0)+1;
-      return room;
-    }, (err, committed)=>{ if(committed) showToast('시간 초과! 차례가 넘어갑니다.'); });
-  }
-
-  function requestOnlineRematch(){
-    if(!S.online.roomRef) return;
-    S.online.roomRef.child('state').transaction(()=>({
-      status:'playing', board:{},
-      turn: Math.random()<0.5 ? 'red':'blue',
-      turnDeadline: Date.now()+TURN_SECONDS*1000,
-      winner:null, winLine:null, moveSeq:0
-    }));
   }
 
   function attachRoomListener(code){
     detachRoomListener();
-    const ref = fbDb.ref(roomPath(code));
-    S.online.roomRef = ref;
-    const cb = snap=> handleRoomUpdate(snap.val());
-    ref.on('value', cb);
-    S.online.listenerRef = {ref, cb};
+    const ref=fbDb.ref(roomPath(code));
+    S.online.roomRef=ref;
+    const cb=snap=>handleRoomUpdate(snap.val());
+    ref.on('value',cb,err=>console.error('room listener error',err));
+    S.online.listenerRef={ref,cb};
   }
+
   function detachRoomListener(){
     if(S.online.listenerRef){
-      S.online.listenerRef.ref.off('value', S.online.listenerRef.cb);
-      S.online.listenerRef = null;
+      S.online.listenerRef.ref.off('value',S.online.listenerRef.cb);
+      S.online.listenerRef=null;
     }
   }
 
   function handleRoomUpdate(room){
-    if(!room || !room.state){
-      if(S.online.enteredPlaying && !S.over) showToast('방 연결이 종료되었습니다.');
-      return;
-    }
-    const oppColor = OPP[S.online.myColor];
-    const oppData = room.players && room.players[oppColor];
-    S.online.opponentName = oppData ? oppData.name : S.online.opponentName;
-    S.online.connected = !!(oppData && oppData.connected);
-
-    if(room.state.status==='waiting'){
-      updateWaitingScreen(room);
-      if(room.players && room.players.red && room.players.blue) tryStartRoomIfReady(S.online.roomCode);
+    if(!room){
+      if(S.online.enteredPlaying&&!S.over) showToast('방 연결이 종료되었습니다.');
       return;
     }
 
-    if(!S.online.enteredPlaying){
-      S.online.enteredPlaying = true;
+    const myUid=sanitizeKey(S.online.playerName);
+    const iAmRed=!!(room.p1&&room.p1.uid===myUid);
+    const iAmBlue=!!(room.p2&&room.p2.uid===myUid);
+
+    if(!iAmRed&&!iAmBlue) return;
+
+    S.online.myColor=iAmRed?'red':'blue';
+
+    const opp=iAmRed?room.p2:room.p1;
+    S.online.opponentName=opp?opp.name:S.online.opponentName;
+
+    S.online.lastRoom=room;
+
+    const presence=room.presence||{};
+    S.online.connected=!!(
+      opp && opp.uid &&
+      presence[opp.uid] &&
+      (
+        presence[opp.uid].online ||
+        serverNow()-(presence[opp.uid].lastSeen||0)<45000
+      )
+    );
+
+    if(!room.started){
+      if(!room.roundEnding){
+        updateWaitingScreen(room);
+        if(room.p1&&room.p2&&iAmRed) startLegacyRoomIfReady(room);
+        return;
+      }
+      if(room.lastWin&&!S.over) applyLegacyRoomState(room,false);
+      return;
+    }
+
+    // 처음 입장하거나, 끝난 판(S.over) 뒤에 새 판이 시작된 경우(다시 대결) → 양쪽 모두 새 게임 화면으로 들어간다.
+    // (예전에는 재대결을 누른 쪽만 새 판으로 들어가고 상대 화면은 이전 판·승리창에 멈춰 있었다)
+    if(!S.online.enteredPlaying || S.over){
+      S.online.enteredPlaying=true;
       enterOnlineGameScreen(room);
       return;
     }
 
     updateOnlineStatusPill();
-    applyRemoteRoomState(room, false);
+    applyLegacyRoomState(room,false);
   }
 
   function updateWaitingScreen(room){
-    $('#waiting-room-code').textContent = S.online.roomCode;
-    const guestName = room.players && room.players.blue && room.players.blue.name;
-    $('#waiting-status-text').textContent = guestName ? (escapeHtml(guestName)+'님이 입장했습니다. 대결을 준비하는 중...') : '상대를 기다리는 중...';
+    $('#waiting-room-code').textContent=S.online.roomCode||'';
+    const guestName=room&&room.p2?room.p2.name:'';
+    // textContent로 넣으므로 escapeHtml을 쓰면 &amp; 같은 글자가 그대로 보인다 → 원문 그대로 넣는다
+    $('#waiting-status-text').textContent=
+      guestName
+        ? (guestName+'님이 참가했습니다. 대결을 준비합니다...')
+        : '상대를 기다리는 중...';
   }
 
   function updateOnlineStatusPill(){
-    const pill = $('#online-status-pill');
-    if(S.mode!=='online'){ pill.classList.remove('show'); return; }
+    const pill=$('#online-status-pill');
+    if(S.mode!=='online'){
+      pill.classList.remove('show');
+      return;
+    }
     pill.classList.add('show');
-    pill.classList.toggle('warn', !S.online.connected);
-    pill.textContent = S.online.connected ? '🟢 연결됨' : '🟡 상대 연결 끊김';
+    pill.classList.toggle('warn',!S.online.connected);
+    pill.textContent=S.online.connected?'🟢 연결됨':'🟡 상대 연결 끊김';
   }
 
   function enterOnlineGameScreen(room){
     resetGameState();
-    const myColor = S.online.myColor;
-    const oppColor = OPP[myColor];
-    const myName = S.online.playerName;
-    const oppName = (room.players && room.players[oppColor] && room.players[oppColor].name) || '상대';
-    S.online.opponentName = oppName;
-    $('#label-red').textContent = '루비 진영 · ' + (myColor==='red' ? myName : oppName);
-    $('#label-blue').textContent = '사파이어 진영 · ' + (myColor==='blue' ? myName : oppName);
-    $('.table').classList.toggle('flip-sides', myColor==='blue');
+    closeModal('#win-modal');            // 이전 판의 승리창이 남아 있으면 닫는다
+    S.online.recordWriteAttempted=false; // 새 판의 결과는 다시 한 번 기록할 수 있어야 한다
+
+    const myColor=S.online.myColor||'red';
+    const myName=S.online.playerName||'나';
+    const oppName=room&&room.p1&&room.p2
+      ? (myColor==='red'?room.p2.name:room.p1.name)
+      : (S.online.opponentName||'상대');
+
+    S.online.opponentName=oppName;
+    $('#label-red').textContent='루비 진영 · '+(myColor==='red'?myName:oppName);
+    $('#label-blue').textContent='사파이어 진영 · '+(myColor==='blue'?myName:oppName);
+    $('.table').classList.toggle('flip-sides',myColor==='blue');
+
     showScreen('screen-game');
     updateOnlineStatusPill();
-    showCoinFlip(room.state.turn, myColor, ()=> applyRemoteRoomState(room, true));
+
+    showCoinFlip(
+      room.turn===1?'red':'blue',
+      myColor,
+      // 동전 던지는 2초 사이에 방 상태가 바뀌었을 수 있으므로 가장 최근에 받은 상태로 화면을 맞춘다
+      ()=>{ if(S.online.roomRef) applyLegacyRoomState(S.online.lastRoom||room,true); },
+      oppName
+    );
   }
 
-  function showCoinFlip(firstTurn, myColor, onDone){
-    const coin = $('#coin-el');
-    const text = $('#coinflip-result-text');
+  // oppName: 상대 이름 (게임마다 상대 정보가 다르므로 호출하는 쪽에서 넘겨 준다)
+  function showCoinFlip(firstTurn,myColor,onDone,oppName){
+    const coin=$('#coin-el');
+    const text=$('#coinflip-result-text');
+
     coin.classList.remove('flipped');
-    text.textContent = '선 진영을 정하는 중...';
+    text.textContent='선공을 정하는 중...';
     openModal('#coinflip-modal');
     Sound.select();
+
     setTimeout(()=>{
       coin.classList.add('flipped');
-      const mine = firstTurn===myColor;
-      text.innerHTML = mine ? '<b>당신</b>이 먼저 둡니다!' : `<b>${escapeHtml(S.online.opponentName||'상대')}</b>이(가) 먼저 둡니다!`;
+      text.innerHTML=
+        firstTurn===myColor
+          ? '<b>당신</b>이 먼저 둡니다!'
+          : `<b>${escapeHtml(oppName||'상대')}</b>님이 먼저 둡니다!`;
       Sound.turn();
-    }, 900);
-    setTimeout(()=>{ closeModal('#coinflip-modal'); onDone(); }, 2300);
+    },900);
+
+    setTimeout(()=>{
+      closeModal('#coinflip-modal');
+      onDone();
+    },2300);
   }
 
-  function applyRemoteRoomState(room, isInitial){
-    if(room.state.status==='playing' && S.over){
-      S.over=false; S.winner=null; S.winLine=null;
-      $$('.cell.win-cell').forEach(c=>c.classList.remove('win-cell'));
-      $$('.piece.win-piece').forEach(p=>p.classList.remove('win-piece'));
-      closeModal('#win-modal');
-      S.online.recordWriteAttempted=false;
-    }
-
-    const newBoard = deserializeBoard(room.state.board);
-    const prevBoard = S.board;
+  function applyLegacyRoomState(room,isInitial){
+    const newBoard=legacyBoardToS(room.b,S.board);
+    const prevBoard=S.board;
 
     if(isInitial){
       allPieceIds().forEach(id=>{
-        const newCell = findPieceCell(newBoard, id);
-        if(newCell!==-1) moveElementTo(S.pieceEls[id], $('.cell[data-index="'+newCell+'"]'), false);
+        const newCell=findPieceCell(newBoard,id);
+        const el=S.pieceEls[id];
+        if(newCell!==-1&&el){
+          moveElementTo(el,$('.cell[data-index="'+newCell+'"]'),false);
+        }
       });
-    } else {
-      let anyMoved=false, wasCover=false;
+    }else{
+      let anyMoved=false;
+      let wasCover=false;
+
       allPieceIds().forEach(id=>{
-        const oldCell = findPieceCell(prevBoard, id);
-        const newCell = findPieceCell(newBoard, id);
-        if(oldCell===newCell) return;
-        const el = S.pieceEls[id];
-        if(!el || newCell===-1) return;
-        anyMoved = true;
-        wasCover = prevBoard[newCell] && prevBoard[newCell].length>0;
-        moveElementTo(el, $('.cell[data-index="'+newCell+'"]'), true);
-        if(oldCell===-1){ el.classList.remove('pop-in'); void el.offsetWidth; el.classList.add('pop-in'); }
+        const oldCell=findPieceCell(prevBoard,id);
+        const newCell=findPieceCell(newBoard,id);
+        if(oldCell===newCell)return;
+
+        const el=S.pieceEls[id];
+        if(!el||newCell===-1)return;
+
+        anyMoved=true;
+        wasCover=wasCover||!!(prevBoard[newCell]&&prevBoard[newCell].length);
+
+        moveElementTo(
+          el,
+          $('.cell[data-index="'+newCell+'"]'),
+          true
+        );
       });
-      if(anyMoved) (wasCover ? Sound.cover() : Sound.place());
+
+      if(anyMoved) (wasCover?Sound.cover():Sound.place());
     }
 
-    const turnChanged = room.state.turn && S.turn!==room.state.turn;
-    S.board = newBoard;
-    S.reserve = deriveReserve(newBoard);
-    if(room.state.turn) S.turn = room.state.turn;
-    S.online.turnDeadline = room.state.turnDeadline;
-    if(!isInitial && turnChanged && room.state.status==='playing') Sound.turn();
+    S.board=newBoard;
+    S.reserve=deriveReserve(newBoard);
+    S.turn=Number(room.turn)===1?'red':'blue';
+    S.online.turnDeadline=room.turnDeadline||null;
 
     updateTurnUI();
     resetTimer();
 
-    if(room.state.status==='finished' && room.state.winner && !S.over){
-      S.over=true; S.winner=room.state.winner; S.winLine=room.state.winLine;
+    if(room.roundEnding&&room.lastWin&&!S.over){
+      S.over=true;
+      S.winner=room.lastWin.side===1?'red':'blue';
+      const wl=checkWinner(S.board,S.winner);
+      S.winLine=wl?wl.line:[];
       stopTimer();
       updateTurnUI();
-      (room.state.winLine||[]).forEach(idx=>{
-        $('.cell[data-index="'+idx+'"]').classList.add('win-cell');
-        const p = topOf(S.board, idx);
-        if(p && S.pieceEls[p.id]) S.pieceEls[p.id].classList.add('win-piece');
-      });
+      highlightWinLine(S.winLine);
       Sound.win();
-      setTimeout(()=> showOnlineWinModal(room.state.winner), 750);
-      tryRecordOnlineResult(room.state.winner);
+      // 0.75초 사이에 이미 재대결이 시작돼 화면이 새 판으로 바뀌었다면 승리창을 띄우지 않는다
+      setTimeout(()=>{ if(S.over && S.mode==='online') showOnlineWinModal(S.winner); },750);
+      tryRecordOnlineResult(S.winner);
     }
   }
 
-  function showOnlineWinModal(winnerColor){
-    const iWon = winnerColor===S.online.myColor;
-    $('#win-crest').className = 'win-crest '+(winnerColor==='red'?'red':'blue');
+  // 온라인 승패 창 (흑과 백/십이장기/결!합!의 온라인 승리창과 같은 형식)
+  function showOnlineWinModal(w){
+    currentGame='russian';
+    const iWon = w===S.online.myColor;
+    $('#win-crest').className='win-crest '+(w==='red'?'red':'blue');
     $('#win-title').textContent = iWon ? '승리했습니다!' : '패배했습니다';
     $('#win-sub').textContent = iWon
-      ? (S.online.opponentName||'상대')+'님을 이겼습니다.'
-      : (S.online.opponentName||'상대')+'님이 승리했습니다.';
+      ? '3개의 말을 나란히 놓았습니다.'
+      : (S.online.opponentName||'상대')+'님이 3개의 말을 나란히 놓았습니다.';
     openModal('#win-modal');
   }
 
-  function tryRecordOnlineResult(winnerColor){
-    if(S.online.recordWriteAttempted) return;
-    S.online.recordWriteAttempted = true;
-    if(S.online.myColor !== 'red') return; // 중복 기록 방지: 방장 클라이언트만 기록
-    const winnerName = winnerColor==='red' ? (S.online.myColor==='red'?S.online.playerName:S.online.opponentName)
-                                            : (S.online.myColor==='blue'?S.online.playerName:S.online.opponentName);
-    const loserName = winnerColor==='red' ? (S.online.myColor==='blue'?S.online.playerName:S.online.opponentName)
-                                           : (S.online.myColor==='red'?S.online.playerName:S.online.opponentName);
-    if(!winnerName || !loserName || !fbReady) return;
-    bumpRecord(winnerName, true);
-    bumpRecord(loserName, false);
-  }
+  function commitOnlineMove(newBoard){
+    if(!S.online.roomRef||S.over)return;
 
-  function bumpRecord(name, isWin){
-    const ref = fbDb.ref('janggiRecords/'+sanitizeKey(name));
-    ref.transaction(cur=>{
-      cur = cur || { name:name, wins:0, losses:0 };
-      cur.name = name;
-      cur.wins = (cur.wins||0) + (isWin?1:0);
-      cur.losses = (cur.losses||0) + (isWin?0:1);
-      cur.lastPlayed = Date.now();
-      return cur;
+    const expected=S.turn==='red'?1:2;
+    const win=checkWinner(newBoard,S.turn);
+    const hands=legacyHandsFromBoard(newBoard);
+
+    S.online.roomRef.transaction(room=>{
+      if(!room||!room.started||room.roundEnding)return room;
+      if(Number(room.turn)!==expected)return room;
+
+      room.b=sBoardToLegacy(newBoard);
+      room.h1=hands[1];
+      room.h2=hands[2];
+      room.lastMove=null;
+
+      if(win){
+        room.started=false;
+        room.roundEnding=true;
+        room.lastWin={
+          side:win.owner==='red'?1:2,
+          name:win.owner==='red'
+            ? (room.p1&&room.p1.name||'루비 진영')
+            : (room.p2&&room.p2.name||'사파이어 진영'),
+          reason:'3목 완성!'
+        };
+        room.turnDeadline=null;
+      }else{
+        room.turn=expected===1?2:1;
+        room.turnDeadline=serverNow()+TURN_SECONDS*1000;
+      }
+      return room;
+    }).catch(e=>{
+      console.error('online move failed',e);
     });
   }
 
+  function attemptOnlineTimeoutPass(){
+    if(!S.online.roomRef||S.over)return;
+
+    const expected=S.turn==='red'?1:2;
+
+    S.online.roomRef.transaction(room=>{
+      if(!room||!room.started||room.roundEnding)return room;
+      if(Number(room.turn)!==expected)return room;
+      if(!room.turnDeadline||serverNow()<room.turnDeadline-200)return room;
+
+      room.turn=expected===1?2:1;
+      room.turnDeadline=serverNow()+TURN_SECONDS*1000;
+      return room;
+    },(err,committed)=>{
+      if(err) console.error('timeout transaction failed',err);
+      if(committed) showToast('시간 초과! 차례가 넘어갑니다.');
+    });
+  }
+
+  function requestOnlineRematch(){
+    if(!S.online.roomRef)return;
+
+    // 로컬 상태를 먼저 "새 판 대기"로 돌려 놓고 방을 초기화한다.
+    // (Firebase는 쓰기 직후 곧바로 이 기기의 리스너를 호출하므로, 순서를 뒤집어 .then 안에서 하면
+    //  이미 시작된 새 판 화면을 대기 화면으로 되돌려 버릴 수 있다)
+    S.over=false;
+    S.winner=null;
+    S.winLine=null;
+    S.online.enteredPlaying=false;
+    closeModal('#win-modal');
+    showScreen('screen-waiting');
+
+    S.online.roomRef.update({
+      status:'WAITING',
+      started:false,
+      roundEnding:false,
+      lastWin:null,
+      turn:Math.random()<0.5?1:2,   // 실제 선공은 방장 쪽이 시작할 때 다시 한 번 정한다
+      turnDeadline:null,
+      b:Array.from({length:9},()=>[]),
+      h1:[1,1,2,2,3,3],
+      h2:[1,1,2,2,3,3]
+    }).catch(e=>console.error('rematch reset failed',e));
+  }
+
+  function tryRecordOnlineResult(winnerColor){
+    if(S.online.recordWriteAttempted)return;
+    S.online.recordWriteAttempted=true;
+
+    // 두 기기가 같은 결과를 각각 기록하면 승패가 2배로 쌓이므로 방장(루비)만 기록한다 (다른 게임과 동일)
+    if(S.online.myColor!=='red') return;
+    if(!fbReady || !S.online.playerName || !S.online.opponentName) return;
+
+    const winnerName = winnerColor===S.online.myColor
+      ? S.online.playerName
+      : S.online.opponentName;
+
+    const loserName = winnerColor===S.online.myColor
+      ? S.online.opponentName
+      : S.online.playerName;
+
+    bumpRecord(winnerName,true);
+    bumpRecord(loserName,false);
+  }
+
+  function bumpRecord(name,isWin){
+    const ref=fbDb.ref('janggiRecords/'+sanitizeKey(name));
+    ref.transaction(cur=>{
+      cur=cur||{name:name,wins:0,losses:0};
+      cur.name=name;
+      cur.wins=(cur.wins||0)+(isWin?1:0);
+      cur.losses=(cur.losses||0)+(isWin?0:1);
+      cur.lastPlayed=Date.now();
+      return cur;
+    }).catch(e=>console.warn('record write failed',e));
+  }
+
   function leaveOnlineRoom(){
-    if(S.online.roomRef && S.online.myColor){
-      S.online.roomRef.child('players/'+S.online.myColor+'/connected').set(false).catch(()=>{});
+    stopOnlinePresence();
+
+    if(S.online.roomRef&&S.online.playerName){
+      const uid=sanitizeKey(S.online.playerName);
+      S.online.roomRef.child('presence/'+uid+'/online').set(false).catch(()=>{});
     }
+
     detachRoomListener();
-    S.online.active=false; S.online.roomCode=null; S.online.myColor=null;
-    S.online.playerName=null; S.online.opponentName=null; S.online.roomRef=null;
-    S.online.turnDeadline=null; S.online.connected=false; S.online.enteredPlaying=false;
+
+    S.online.active=false;
+    S.online.roomCode=null;
+    S.online.myColor=null;
+    S.online.playerName=null;
+    S.online.opponentName=null;
+    S.online.roomRef=null;
+    S.online.turnDeadline=null;
+    S.online.connected=false;
+    S.online.enteredPlaying=false;
     S.online.recordWriteAttempted=false;
+    S.online.lastRoom=null;
+
     $('#online-status-pill').classList.remove('show');
   }
 
   function friendlyOnlineError(e){
-    const msg = e && e.message;
-    const map = {
-      FIREBASE_NOT_CONFIGURED:'Firebase 설정이 필요합니다. 파일 상단 firebaseConfig 값을 채워주세요.',
+    const msg=e&&e.message||'';
+
+    if(/PERMISSION_DENIED|Permission denied|permission/i.test(msg)){
+      return 'Firebase 방 생성 권한 오류: '+msg;
+    }
+
+    if(/network|NETWORK/i.test(msg)){
+      return 'Firebase 네트워크 연결 오류입니다. 인터넷 연결과 Realtime Database 상태를 확인해주세요.';
+    }
+
+    const map={
+      FIREBASE_NOT_CONFIGURED:'Firebase 설정이 필요합니다.',
       ROOM_NOT_FOUND:'해당 코드의 방을 찾을 수 없습니다.',
       ROOM_FULL:'이미 인원이 가득 찬 방입니다.',
       ROOM_ALREADY_STARTED:'이미 시작된 대결입니다.',
-      INVALID_CODE:'방 코드는 4자리입니다.',
-      ROOM_CODE_EXHAUSTED:'방 생성에 실패했습니다. 다시 시도해주세요.'
+      INVALID_CODE:'방 코드는 6자리입니다.',
+      SAME_NAME:'방장과 같은 이름으로 참가할 수 없습니다.',
+      ROOM_INVALID:'방 데이터가 올바르지 않습니다.',
+      ROOM_JOIN_FAILED:'방 참가에 실패했습니다. 잠시 후 다시 시도해주세요.'
     };
-    if(msg && /PERMISSION_DENIED|Permission denied|permission/i.test(msg)) return 'Firebase 권한 오류입니다. 첫 번째 앱과 같은 Realtime Database 규칙을 사용해야 합니다.';
-    if(msg && /NETWORK_ERROR|network/i.test(msg)) return 'Firebase 네트워크 연결 오류입니다. 인터넷 연결과 Firebase Realtime Database 상태를 확인해주세요.';
-    return map[msg] || ('연결 중 문제가 발생했습니다. 다시 시도해주세요. ('+(msg||'알 수 없는 오류')+')');
+
+    return map[msg]||('연결 중 문제가 발생했습니다. ('+(msg||'알 수 없는 오류')+')');
   }
 
   function openRecordsModal(){
     openModal('#records-modal');
-    const name = S.online.playerName || $('#input-name').value.trim();
+
+    const name=S.online.playerName||$('#input-name').value.trim();
+
+    $('#leaderboard-list').innerHTML='';
+
     if(!ensureFirebase()){
-      $('#my-record-box').innerHTML = '<div class="my-record-stats">Firebase가 설정되지 않아 전적을 불러올 수 없습니다.</div>';
-      $('#leaderboard-list').innerHTML = '';
+      $('#my-record-box').innerHTML='<div class="my-record-stats">Firebase가 설정되지 않아 전적을 불러올 수 없습니다.</div>';
       return;
     }
+
     if(name){
       fbDb.ref('janggiRecords/'+sanitizeKey(name)).once('value').then(snap=>{
-        const rec = snap.val();
+        const rec=snap.val();
+
         if(rec){
-          const total = (rec.wins||0)+(rec.losses||0);
-          const rate = total ? Math.round(rec.wins/total*100) : 0;
-          $('#my-record-box').innerHTML = `<div class="my-record-name">${escapeHtml(rec.name)}</div><div class="my-record-stats">${rec.wins||0}승 ${rec.losses||0}패 · 승률 ${rate}%</div>`;
-        } else {
-          $('#my-record-box').innerHTML = '<div class="my-record-stats">아직 기록된 대결이 없습니다.</div>';
+          const total=(rec.wins||0)+(rec.losses||0);
+          const rate=total?Math.round((rec.wins||0)/total*100):0;
+
+          $('#my-record-box').innerHTML=
+            `<div class="my-record-name">${escapeHtml(rec.name)}</div>`+
+            `<div class="my-record-stats">${rec.wins||0}승 ${rec.losses||0}패 · 승률 ${rate}%</div>`;
+        }else{
+          $('#my-record-box').innerHTML='<div class="my-record-stats">아직 기록된 대결이 없습니다.</div>';
         }
-      }).catch(()=>{ $('#my-record-box').innerHTML = '<div class="my-record-stats">전적을 불러오지 못했습니다.</div>'; });
-    } else {
-      $('#my-record-box').innerHTML = '<div class="my-record-stats">이름을 입력하면 전적을 볼 수 있어요.</div>';
+      }).catch(e=>{
+        console.warn('record read failed',e);
+        $('#my-record-box').innerHTML='<div class="my-record-stats">전적을 불러오지 못했습니다.</div>';
+      });
+    }else{
+      $('#my-record-box').innerHTML='<div class="my-record-stats">이름을 입력하면 전적을 볼 수 있어요.</div>';
     }
+
+    // 다른 게임과 같은 TOP 10 순위표 (승수 기준)
     fbDb.ref('janggiRecords').orderByChild('wins').limitToLast(10).once('value').then(snap=>{
       const rows=[];
       snap.forEach(child=>{ rows.push(child.val()); });
       rows.reverse();
-      $('#leaderboard-list').innerHTML = rows.map((r,i)=>{
+      $('#leaderboard-list').innerHTML=rows.map((r,i)=>{
         const total=(r.wins||0)+(r.losses||0);
-        const rate = total? Math.round((r.wins||0)/total*100):0;
+        const rate=total?Math.round((r.wins||0)/total*100):0;
         return `<div class="lb-row"><span class="lb-rank">${i+1}</span><span class="lb-name">${escapeHtml(r.name)}</span><span class="lb-stats">${r.wins||0}승 ${r.losses||0}패 · ${rate}%</span></div>`;
       }).join('') || '<div class="my-record-stats">아직 기록이 없습니다.</div>';
     }).catch(()=>{ $('#leaderboard-list').innerHTML=''; });
   }
 
-  /* =====================================================
-     십이장기 (Twelve Janggi) — 3x4 보드, 4종 말, 포로 드롭
-     모든 식별자는 tj 접두사로 러시아 장기 코드와 완전히 분리
-  ===================================================== */
   const TJ_ROWS=4, TJ_COLS=3;
   const TJ_GLYPH = { jang:'將', sang:'相', wang:'王', ja:'子', hu:'侯' };
   const TJ_TURN_SECONDS = 30;
@@ -2596,7 +2959,6 @@
   function tjIdx(r,c){ return r*TJ_COLS+c; }
   function tjRc(i){ return [Math.floor(i/TJ_COLS), i%TJ_COLS]; }
   function tjInBounds(r,c){ return r>=0&&r<TJ_ROWS&&c>=0&&c<TJ_COLS; }
-  function tjHomeRow(owner){ return owner==='red'?3:0; }
   function tjOppHomeRow(owner){ return owner==='red'?0:3; }
   function tjForwardDir(owner){ return owner==='red'?-1:1; }
 
@@ -2788,10 +3150,12 @@
     board: tjInitialBoard(), hand: tjEmptyHand(), turn:'red',
     selection:null, timeLeft:TJ_TURN_SECONDS, timerHandle:null,
     over:false, winner:null, winCells:null,
+    flipView:false,   // 온라인에서 사파이어로 두면 true: 내 진영이 아래쪽에 오도록 화면을 180° 뒤집어 그린다
+    _aiToken:0,       // AI 생각 타이머가 이전 판에서 남아 엉뚱한 수를 두지 못하게 하는 표식
     online:{
       active:false, roomCode:null, myColor:null, playerName:null, opponentName:null,
       roomRef:null, listenerRef:null, turnDeadline:null, connected:false,
-      enteredPlaying:false, recordWriteAttempted:false
+      enteredPlaying:false, recordWriteAttempted:false, presenceTimer:null
     }
   };
 
@@ -2800,7 +3164,8 @@
   function tjBuildBoardDom(){
     const board = $('#board-tj');
     board.innerHTML='';
-    for(let i=0;i<12;i++){
+    for(let n=0;n<12;n++){
+      const i = T.flipView ? 11-n : n;   // 뒤집어 보기: 화면 맨 위 칸이 11번, 맨 아래가 0번
       const [r] = tjRc(i);
       const cell = document.createElement('div');
       cell.className = 'tjcell'+(r===0?' home-blue':'')+(r===3?' home-red':'');
@@ -2843,7 +3208,8 @@
 
         tjPieceDirs(p.type, p.owner).forEach(([dr,dc])=>{
           const arrow = document.createElement('div');
-          arrow.className = 'tj-arrow tj-dir-'+tjDirClass(dr,dc);
+          // 화면을 180° 뒤집어 보는 경우 화살표 방향도 반대로 그려야 실제 이동 방향과 맞는다
+          arrow.className = 'tj-arrow tj-dir-'+(T.flipView ? tjDirClass(-dr,-dc) : tjDirClass(dr,dc));
           wrap.appendChild(arrow);
         });
 
@@ -3021,7 +3387,7 @@
   function tjUpdateOnlineTimerFromDeadline(){
     if(T.over || !T.online.turnDeadline) return;
     const prevCeil = Math.ceil(T.timeLeft||0);
-    const remain = Math.max(0,(T.online.turnDeadline-Date.now())/1000);
+    const remain = Math.max(0,(T.online.turnDeadline-serverNow())/1000);
     T.timeLeft = remain;
     const nowCeil = Math.ceil(remain);
     if(nowCeil<=5 && nowCeil>0 && nowCeil!==prevCeil) Sound.tick();
@@ -3035,6 +3401,12 @@
     showToast((T.turn==='red'?'루비':'사파이어')+' 진영 시간 초과! 차례가 넘어갑니다.');
     T.selection=null;
     T.turn = OPP[T.turn];
+    // 차례가 넘어온 쪽의 왕이 이미 적진에 있다면, 상대가 한 턴(시간 초과로 건너뜀)을 쓰고도 잡지 못했으므로 승리
+    if(tjKingTryWin(T.board, T.turn)){
+      tjApplySelectionHighlights();
+      tjEndGame(T.turn, null);
+      return;
+    }
     tjApplySelectionHighlights();
     tjResetTimer();
     tjUpdateTurnUI();
@@ -3080,10 +3452,11 @@
     if(T.over) return;
     if(T.mode!=='ai' || T.turn!==T.aiOwner) return;
     tjUpdateTurnUI();
-    setTimeout(tjRunAiMove, 550+Math.random()*750);
+    const token = ++T._aiToken;   // 새로 예약하면 이전 예약은 무효
+    setTimeout(()=>{ if(token===T._aiToken) tjRunAiMove(); }, 550+Math.random()*750);
   }
   function tjRunAiMove(){
-    if(T.over) return;
+    if(T.over || T.mode!=='ai' || T.turn!==T.aiOwner) return;
     const move = tjGetAiMove(T.board, T.hand, T.aiOwner, T.aiDifficulty);
     if(!move){ T.turn=OPP[T.turn]; tjResetTimer(); tjUpdateTurnUI(); return; }
     const {board:nb, hand:nh, captured} = tjApplyMove(T.board, T.hand, T.aiOwner, move);
@@ -3101,7 +3474,11 @@
     T.selection=null;
     T.over=false; T.winner=null; T.winCells=null;
     T.timeLeft=TJ_TURN_SECONDS;
+    T._aiToken++;   // 이전 판에서 예약된 AI 수가 있다면 무효화
     tjStopTimer();
+    // 온라인에서 사파이어(참가자)면 위아래를 뒤집어서 내 진영이 아래쪽에 오게 한다
+    T.flipView = (T.mode==='online' && T.online.myColor==='blue');
+    $('.tj-table').classList.toggle('flip-view', T.flipView);
     tjBuildBoardDom();
     tjRenderBoard(null);
   }
@@ -3119,6 +3496,7 @@
   }
   function tjBackToMainMenu(){
     tjStopTimer();
+    T._aiToken++;   // 메뉴로 나간 뒤에 AI가 수를 두지 않도록
     if(T.mode==='online') tjLeaveOnlineRoom();
     showScreen('screen-start-tj');
     $('#diff-row-tj').classList.remove('active');
@@ -3139,7 +3517,7 @@
         await ref.set({
           createdAt: firebase.database.ServerValue.TIMESTAMP,
           players:{ red:{ name:playerName, connected:true } },
-          state:{ status:'waiting', board:{}, hand:tjEmptyHand(), turn:null, turnDeadline:null, winner:null, winCell:null, moveSeq:0 }
+          state:{ status:'waiting', board:tjSerializeBoard(tjInitialBoard()), hand:tjEmptyHand(), turn:null, turnDeadline:null, winner:null, winCell:null, moveSeq:0 }
         });
         ref.child('players/red/connected').onDisconnect().set(false);
         return code;
@@ -3147,6 +3525,15 @@
     }
     throw new Error('ROOM_CODE_EXHAUSTED');
   }
+
+  // 연결이 끊겼다 돌아오면 "접속 중"을 다시 켜고 onDisconnect 예약을 다시 건다
+  // (서버가 이미 connected=false로 바꿔 버리면 상대 화면이 영원히 '연결 끊김'으로 막히던 문제)
+  reconnectHooks.push(()=>{
+    if(!T.online.active || !T.online.roomRef || !T.online.myColor) return;
+    const flag = T.online.roomRef.child('players/'+T.online.myColor+'/connected');
+    flag.set(true).catch(()=>{});
+    flag.onDisconnect().set(false).catch(()=>{});
+  });
 
   async function tjJoinOnlineRoom(codeRaw, playerName){
     if(!ensureFirebase()) throw new Error('FIREBASE_NOT_CONFIGURED');
@@ -3158,7 +3545,12 @@
     const room = snap.val();
     if(room.players && room.players.blue) throw new Error('ROOM_FULL');
     if(!room.state || room.state.status!=='waiting') throw new Error('ROOM_ALREADY_STARTED');
-    await ref.child('players/blue').set({ name:playerName, connected:true });
+    // 두 사람이 동시에 같은 방에 들어가면 나중 사람이 앞사람을 덮어쓰던 문제 → 빈 자리일 때만 들어간다 (transaction)
+    const seat = await ref.child('players/blue').transaction(cur=>{
+      if(cur!==null) return;                          // 이미 누가 앉았다 → 중단
+      return { name:playerName, connected:true };
+    });
+    if(!seat.committed) throw new Error('ROOM_FULL');
     ref.child('players/blue/connected').onDisconnect().set(false);
     return code;
   }
@@ -3169,8 +3561,11 @@
       if(room.state.status!=='waiting') return room;
       if(!room.players || !room.players.red || !room.players.blue) return room;
       room.state.status='playing';
+      // 시작 말 배치를 방 상태에 직접 넣는다. (빈 보드는 Firebase에 저장되지 않아 예전엔 말이 0개인 채 시작했다)
+      room.state.board = tjSerializeBoard(tjInitialBoard());
+      room.state.hand = tjEmptyHand();
       room.state.turn = Math.random()<0.5 ? 'red':'blue';
-      room.state.turnDeadline = Date.now() + TJ_TURN_SECONDS*1000;
+      room.state.turnDeadline = serverNow() + TJ_TURN_SECONDS*1000;
       return room;
     });
   }
@@ -3200,7 +3595,7 @@
         return room;
       }
       room.state.turn = nextTurn;
-      room.state.turnDeadline = Date.now() + TJ_TURN_SECONDS*1000;
+      room.state.turnDeadline = serverNow() + TJ_TURN_SECONDS*1000;
       return room;
     });
   }
@@ -3210,10 +3605,18 @@
     T.online.roomRef.transaction(room=>{
       if(!room || !room.state) return room;
       if(room.state.status!=='playing') return room;
-      if(!room.state.turnDeadline || Date.now() < room.state.turnDeadline-200) return room;
+      if(!room.state.turnDeadline || serverNow() < room.state.turnDeadline-200) return room;
       room.state.turn = room.state.turn==='red' ? 'blue':'red';
-      room.state.turnDeadline = Date.now() + TJ_TURN_SECONDS*1000;
+      room.state.turnDeadline = serverNow() + TJ_TURN_SECONDS*1000;
       room.state.moveSeq = (room.state.moveSeq||0)+1;
+      // 시간 초과로 차례가 넘어왔는데 그 쪽 왕이 이미 적진에 있으면(상대가 한 턴을 쓰고도 못 잡음) 승리
+      const passedBoard = tjDeserializeBoard(room.state.board);
+      if(tjKingTryWin(passedBoard, room.state.turn)){
+        room.state.status='finished';
+        room.state.winner=room.state.turn;
+        room.state.winCell=tjFindKing(passedBoard, room.state.turn);
+        room.state.turn=null; room.state.turnDeadline=null;
+      }
       return room;
     }, (err, committed)=>{ if(committed) showToast('시간 초과! 차례가 넘어갑니다.'); });
   }
@@ -3221,9 +3624,9 @@
   function tjRequestOnlineRematch(){
     if(!T.online.roomRef) return;
     T.online.roomRef.child('state').transaction(()=>({
-      status:'playing', board:{}, hand:tjEmptyHand(),
+      status:'playing', board:tjSerializeBoard(tjInitialBoard()), hand:tjEmptyHand(),
       turn: Math.random()<0.5 ? 'red':'blue',
-      turnDeadline: Date.now()+TJ_TURN_SECONDS*1000,
+      turnDeadline: serverNow()+TJ_TURN_SECONDS*1000,
       winner:null, winCell:null, moveSeq:0
     }));
   }
@@ -3252,6 +3655,7 @@
     const oppData = room.players && room.players[oppColor];
     T.online.opponentName = oppData ? oppData.name : T.online.opponentName;
     T.online.connected = !!(oppData && oppData.connected);
+    T.online.lastRoom = room;
 
     if(room.state.status==='waiting'){
       tjUpdateWaitingScreen(room);
@@ -3270,7 +3674,7 @@
   function tjUpdateWaitingScreen(room){
     $('#waiting-room-code-tj').textContent = T.online.roomCode;
     const guestName = room.players && room.players.blue && room.players.blue.name;
-    $('#waiting-status-text-tj').textContent = guestName ? (escapeHtml(guestName)+'님이 입장했습니다. 대결을 준비하는 중...') : '상대를 기다리는 중...';
+    $('#waiting-status-text-tj').textContent = guestName ? (guestName+'님이 입장했습니다. 대결을 준비하는 중...') : '상대를 기다리는 중...';
   }
   function tjUpdateOnlineStatusPill(){
     const pill = $('#online-status-pill-tj');
@@ -3291,7 +3695,10 @@
     $('#label-blue-tj').textContent = '사파이어 진영 · ' + (myColor==='blue'?myName:oppName);
     showScreen('screen-game-tj');
     tjUpdateOnlineStatusPill();
-    tjShowCoinFlip(room.state.turn, myColor, ()=> tjApplyRemoteRoomState(room, true));
+    tjShowCoinFlip(room.state.turn, myColor, ()=>{
+      if(!T.online.roomRef) return;   // 동전 던지는 중에 나갔다면 중단
+      tjApplyRemoteRoomState(T.online.lastRoom||room, true);   // 그 사이 바뀐 가장 최근 상태로 맞춘다
+    });
   }
 
   function tjShowCoinFlip(firstTurn, myColor, onDone){
@@ -3304,7 +3711,7 @@
     setTimeout(()=>{
       coin.classList.add('flipped');
       const mine = firstTurn===myColor;
-      text.innerHTML = mine ? '<b>당신</b>이 먼저 둡니다!' : `<b>${escapeHtml(T.online.opponentName||'상대')}</b>이(가) 먼저 둡니다!`;
+      text.innerHTML = mine ? '<b>당신</b>이 먼저 둡니다!' : `<b>${escapeHtml(T.online.opponentName||'상대')}</b>님이 먼저 둡니다!`;
       Sound.turn();
     }, 900);
     setTimeout(()=>{ closeModal('#coinflip-modal'); onDone(); }, 2300);
@@ -3365,7 +3772,7 @@
     T.online.active=false; T.online.roomCode=null; T.online.myColor=null;
     T.online.playerName=null; T.online.opponentName=null; T.online.roomRef=null;
     T.online.turnDeadline=null; T.online.connected=false; T.online.enteredPlaying=false;
-    T.online.recordWriteAttempted=false;
+    T.online.recordWriteAttempted=false; T.online.lastRoom=null;
     $('#online-status-pill-tj').classList.remove('show');
   }
 
@@ -3477,10 +3884,11 @@
     match:null, myColor:'red',
     pendingSelection:null, timeLeft:BW_TURN_SECONDS, timerHandle:null,
     _pending:null, _lastShownRound:null, _lastKnownOvertime:undefined,
+    _aiToken:0,   // 이전 판에서 예약된 AI 수가 새 판에서 실행되지 않게 하는 표식
     online:{
       active:false, roomCode:null, myColor:null, playerName:null, opponentName:null,
       roomRef:null, listenerRef:null, turnDeadline:null, connected:false,
-      enteredPlaying:false, recordWriteAttempted:false
+      enteredPlaying:false, recordWriteAttempted:false, presenceTimer:null
     }
   };
 
@@ -3549,7 +3957,9 @@
       const meVal = BW.myColor==='red' ? h.tileRed : h.tileBlue;
       const oppColorRevealed = bwColor(BW.myColor==='red' ? h.tileBlue : h.tileRed);
       const meEl = document.createElement('div'); meEl.className='bw-hist-me';
-      const meChip = document.createElement('span'); meChip.className='bw-chip c-'+bwColor(meVal); meChip.textContent=meVal;
+      // 한 기기를 둘이 같이 쓰는 로컬 모드에서는 루비 숫자를 사파이어도 볼 수 있으므로 양쪽 모두 색만 보여 준다
+      const meChip = document.createElement('span'); meChip.className='bw-chip c-'+bwColor(meVal);
+      meChip.textContent = BW.mode==='local' ? '?' : meVal;
       meEl.appendChild(meChip);
       const oppEl = document.createElement('div'); oppEl.className='bw-hist-opp';
       const oppChip = document.createElement('span'); oppChip.className='bw-chip c-'+oppColorRevealed; oppChip.textContent='?';
@@ -3571,8 +3981,8 @@
     $('#bw-score-opp').textContent = BW.match.score[bwOpponentColor()];
     $('#bw-round-num').textContent = BW.match.round+' / 9';
     $('#bw-overtime-label').textContent = BW.match.overtimeCount>0 ? '연장 '+BW.match.overtimeCount+'차' : '';
-    $('#bw-name-me').textContent = BW.mode==='online' ? (BW.online.playerName||'나') : '나';
-    $('#bw-name-opp').textContent = BW.mode==='online' ? (BW.online.opponentName||'상대') : (BW.mode==='ai' ? 'AI':'상대');
+    $('#bw-name-me').textContent = BW.mode==='online' ? (BW.online.playerName||'나') : (BW.mode==='local' ? '루비' : '나');
+    $('#bw-name-opp').textContent = BW.mode==='online' ? (BW.online.opponentName||'상대') : (BW.mode==='ai' ? 'AI' : '사파이어');
   }
 
   function bwUpdateTurnCaption(){
@@ -3689,6 +4099,8 @@
     }
     if(BW.match.overtimeCount>wasOvertimeBefore){
       showToast('9라운드가 모두 무승부! 연장전을 시작합니다.');
+      BW.match.history = [];   // 연장전은 새 세트이므로 기록표도 비운다 (온라인 대결과 동일)
+      bwRenderHistory();
     }
     bwStartTimer();
     if(BW.mode==='local'){
@@ -3744,7 +4156,7 @@
   function bwUpdateOnlineTimerFromDeadline(){
     if(BW.match.matchOver || !BW.online.turnDeadline) return;
     const prevCeil = Math.ceil(BW.timeLeft||0);
-    const remain = Math.max(0, (BW.online.turnDeadline-Date.now())/1000);
+    const remain = Math.max(0, (BW.online.turnDeadline-serverNow())/1000);
     BW.timeLeft = remain;
     const nowCeil = Math.ceil(remain);
     if(nowCeil<=5 && nowCeil>0 && nowCeil!==prevCeil) Sound.tick();
@@ -3767,10 +4179,11 @@
     const acting = BW._pending ? OPP[BW._pending.player] : BW.match.firstPlayer;
     if(BW.mode!=='ai' || acting!==BW.aiOwner) return;
     bwUpdateTurnCaption();
-    setTimeout(bwRunAiMove, 500+Math.random()*700);
+    const token = ++BW._aiToken;   // 새로 예약하면 이전 예약은 무효
+    setTimeout(()=>{ if(token===BW._aiToken) bwRunAiMove(); }, 500+Math.random()*700);
   }
   function bwRunAiMove(){
-    if(BW.match.matchOver) return;
+    if(BW.mode!=='ai' || BW.match.matchOver) return;
     const acting = BW._pending ? OPP[BW._pending.player] : BW.match.firstPlayer;
     if(acting!==BW.aiOwner) return;
     const roundsLeft = 9 - BW.match.round + 1;
@@ -3787,6 +4200,7 @@
     BW.pendingSelection = null;
     BW._lastShownRound = null;
     BW._lastKnownOvertime = 0;
+    BW._aiToken++;   // 이전 판에서 예약된 AI 수 무효화
     bwStopTimer();
   }
   let BW_lastMatchFirst = null;
@@ -3813,6 +4227,7 @@
   }
   function bwBackToMainMenu(){
     bwStopTimer();
+    BW._aiToken++;   // 메뉴로 나간 뒤에 AI가 수를 두지 않도록
     if(BW.mode==='online') bwLeaveOnlineRoom();
     showScreen('screen-start-bw');
     $('#diff-row-bw').classList.remove('active');
@@ -3843,6 +4258,15 @@
     }
     throw new Error('ROOM_CODE_EXHAUSTED');
   }
+
+  // 연결이 끊겼다 돌아오면 "접속 중"을 다시 켜고 onDisconnect 예약을 다시 건다
+  reconnectHooks.push(()=>{
+    if(!BW.online.active || !BW.online.roomRef || !BW.online.myColor) return;
+    const flag = BW.online.roomRef.child('players/'+BW.online.myColor+'/connected');
+    flag.set(true).catch(()=>{});
+    flag.onDisconnect().set(false).catch(()=>{});
+  });
+
   async function bwJoinOnlineRoom(codeRaw, playerName){
     if(!ensureFirebase()) throw new Error('FIREBASE_NOT_CONFIGURED');
     const code = codeRaw.toUpperCase().trim();
@@ -3853,7 +4277,12 @@
     const room = snap.val();
     if(room.players && room.players.blue) throw new Error('ROOM_FULL');
     if(!room.state || room.state.status!=='waiting') throw new Error('ROOM_ALREADY_STARTED');
-    await ref.child('players/blue').set({ name:playerName, connected:true });
+    // 동시에 두 명이 들어가도 한 명만 앉도록 빈 자리일 때만 들어간다 (transaction)
+    const seat = await ref.child('players/blue').transaction(cur=>{
+      if(cur!==null) return;                          // 이미 누가 앉았다 → 중단
+      return { name:playerName, connected:true };
+    });
+    if(!seat.committed) throw new Error('ROOM_FULL');
     ref.child('players/blue/connected').onDisconnect().set(false);
     return code;
   }
@@ -3864,7 +4293,7 @@
       if(!room.players || !room.players.red || !room.players.blue) return room;
       room.state.status='playing';
       room.state.firstPlayer = Math.random()<0.5 ? 'red':'blue';
-      room.state.turnDeadline = Date.now()+BW_TURN_SECONDS*1000;
+      room.state.turnDeadline = serverNow()+BW_TURN_SECONDS*1000;
       return room;
     });
   }
@@ -3877,7 +4306,7 @@
       if(acting !== myColor) return;
       if(!room.state.pending){
         room.state.pending = {player:myColor, value};
-        room.state.turnDeadline = Date.now()+BW_TURN_SECONDS*1000;
+        room.state.turnDeadline = serverNow()+BW_TURN_SECONDS*1000;
         return room;
       }
       const tileRed = room.state.pending.player==='red' ? room.state.pending.value : value;
@@ -3896,7 +4325,7 @@
       room.state.overtimeCount = resolved.overtimeCount;
       room.state.pending = null;
       room.state.lastRound = {tileRed, tileBlue, winner: bwCompare(tileRed,tileBlue), round: tempState.round};
-      room.state.turnDeadline = Date.now()+BW_TURN_SECONDS*1000;
+      room.state.turnDeadline = serverNow()+BW_TURN_SECONDS*1000;
       if(resolved.matchOver){ room.state.status='finished'; room.state.matchOver=true; room.state.matchWinner=resolved.matchWinner; room.state.turnDeadline=null; }
       return room;
     });
@@ -3905,14 +4334,14 @@
     if(!BW.online.roomRef || BW.match.matchOver) return;
     BW.online.roomRef.transaction(room=>{
       if(!room || !room.state || room.state.status!=='playing') return room;
-      if(!room.state.turnDeadline || Date.now() < room.state.turnDeadline-200) return room;
+      if(!room.state.turnDeadline || serverNow() < room.state.turnDeadline-200) return room;
       const acting = room.state.pending ? OPP[room.state.pending.player] : room.state.firstPlayer;
       const tiles = acting==='red' ? room.state.tilesRed : room.state.tilesBlue;
       if(!tiles || !tiles.length) return room;
       const auto = tiles[Math.floor(Math.random()*tiles.length)];
       if(!room.state.pending){
         room.state.pending = {player:acting, value:auto};
-        room.state.turnDeadline = Date.now()+BW_TURN_SECONDS*1000;
+        room.state.turnDeadline = serverNow()+BW_TURN_SECONDS*1000;
         return room;
       }
       const tileRed = room.state.pending.player==='red' ? room.state.pending.value : auto;
@@ -3926,7 +4355,7 @@
       room.state.overtimeCount = resolved.overtimeCount;
       room.state.pending = null;
       room.state.lastRound = {tileRed, tileBlue, winner: bwCompare(tileRed,tileBlue), round: tempState.round};
-      room.state.turnDeadline = Date.now()+BW_TURN_SECONDS*1000;
+      room.state.turnDeadline = serverNow()+BW_TURN_SECONDS*1000;
       if(resolved.matchOver){ room.state.status='finished'; room.state.matchOver=true; room.state.matchWinner=resolved.matchWinner; room.state.turnDeadline=null; }
       return room;
     }, (err, committed)=>{ if(committed) showToast('시간 초과! 무작위 타일이 자동으로 제시되었습니다.'); });
@@ -3936,7 +4365,7 @@
     BW.online.roomRef.child('state').transaction(()=>({
       status:'playing', tilesRed:bwFreshTiles(), tilesBlue:bwFreshTiles(), round:1,
       firstPlayer: Math.random()<0.5?'red':'blue', scoreRed:0, scoreBlue:0, overtimeCount:0,
-      pending:null, matchOver:false, matchWinner:null, turnDeadline:Date.now()+BW_TURN_SECONDS*1000, lastRound:null
+      pending:null, matchOver:false, matchWinner:null, turnDeadline:serverNow()+BW_TURN_SECONDS*1000, lastRound:null
     }));
   }
   function bwAttachRoomListener(code){
@@ -3959,6 +4388,7 @@
     const oppData = room.players && room.players[oppColor];
     BW.online.opponentName = oppData ? oppData.name : BW.online.opponentName;
     BW.online.connected = !!(oppData && oppData.connected);
+    BW.online.lastRoom = room;
 
     if(room.state.status==='waiting'){
       bwUpdateWaitingScreen(room);
@@ -3976,7 +4406,7 @@
   function bwUpdateWaitingScreen(room){
     $('#waiting-room-code-bw').textContent = BW.online.roomCode;
     const guestName = room.players && room.players.blue && room.players.blue.name;
-    $('#waiting-status-text-bw').textContent = guestName ? (escapeHtml(guestName)+'님이 입장했습니다. 대결을 준비하는 중...') : '상대를 기다리는 중...';
+    $('#waiting-status-text-bw').textContent = guestName ? (guestName+'님이 입장했습니다. 대결을 준비하는 중...') : '상대를 기다리는 중...';
   }
   function bwUpdateOnlineStatusPill(){
     const pill = $('#online-status-pill-bw');
@@ -3993,13 +4423,21 @@
     BW.online.opponentName = oppName;
     showScreen('screen-game-bw');
     bwUpdateOnlineStatusPill();
-    showCoinFlip(room.state.firstPlayer, BW.myColor, ()=>{ bwApplyRemoteRoomState(room); bwStartTimer(); });
+    showCoinFlip(room.state.firstPlayer, BW.myColor, ()=>{
+      if(!BW.online.roomRef) return;   // 동전 던지는 중에 나갔다면 중단
+      bwApplyRemoteRoomState(BW.online.lastRoom||room);   // 그 사이 바뀐 가장 최근 상태로 맞춘다
+      bwStartTimer();
+    }, oppName);
   }
   function bwApplyRemoteRoomState(room){
     if(room.state.status==='playing' && BW.match.matchOver){
       BW.match.matchOver=false; BW.match.matchWinner=null;
       closeModal('#win-modal');
       BW.online.recordWriteAttempted=false;
+      // 다시 대결: 지난 판의 기록표와 라운드 표시 정보를 비운다 (안 비우면 이전 판 기록이 그대로 남는다)
+      BW.match.history = [];
+      BW._lastShownRound = null;
+      BW._lastKnownOvertime = 0;
     }
     BW.match.tiles.red = room.state.tilesRed||bwFreshTiles();
     BW.match.tiles.blue = room.state.tilesBlue||bwFreshTiles();
@@ -4067,7 +4505,7 @@
     BW.online.active=false; BW.online.roomCode=null; BW.online.myColor=null;
     BW.online.playerName=null; BW.online.opponentName=null; BW.online.roomRef=null;
     BW.online.turnDeadline=null; BW.online.connected=false; BW.online.enteredPlaying=false;
-    BW.online.recordWriteAttempted=false;
+    BW.online.recordWriteAttempted=false; BW.online.lastRoom=null;
     $('#online-status-pill-bw').classList.remove('show');
   }
   function bwFriendlyOnlineError(e){
@@ -4134,6 +4572,7 @@
     $('#hub-pick-russian').style.display = (c.russian===false) ? 'none' : '';
     $('#hub-pick-twelve').style.display = (c.twelve===false) ? 'none' : '';
     $('#hub-pick-bw').style.display = (c.blackwhite===false) ? 'none' : '';
+    $('#hub-pick-gh').style.display = (c.gyeolhap===false) ? 'none' : '';
   }
   function loadAndApplyHubVisibility(){
     if(!ensureFirebase()) return;
@@ -4152,6 +4591,7 @@
       $('#toggle-russian').checked = $('#hub-pick-russian').style.display!=='none';
       $('#toggle-twelve').checked = $('#hub-pick-twelve').style.display!=='none';
       $('#toggle-bw').checked = $('#hub-pick-bw').style.display!=='none';
+      $('#toggle-gh').checked = $('#hub-pick-gh').style.display!=='none';
       return;
     }
     adminConfigRef().child('gamesEnabled').once('value').then(snap=>{
@@ -4159,6 +4599,7 @@
       $('#toggle-russian').checked = c.russian!==false;
       $('#toggle-twelve').checked = c.twelve!==false;
       $('#toggle-bw').checked = c.blackwhite!==false;
+      $('#toggle-gh').checked = c.gyeolhap!==false;
     }).catch(()=>{});
   }
 
@@ -4387,7 +4828,7 @@
   function ghTickOnline(){
     if(!GH.match || GH.match.matchOver || !GH.online.turnDeadline) return;
     const prev=Math.ceil(GH.timeLeft||0);
-    const remain=Math.max(0,(GH.online.turnDeadline-Date.now())/1000);
+    const remain=Math.max(0,(GH.online.turnDeadline-serverNow())/1000);
     GH.timeLeft=remain;
     const now=Math.ceil(remain);
     if(now<=3 && now>0 && now!==prev) Sound.tick();
@@ -4509,7 +4950,7 @@
     st.seq=(st.seq||0)+1;
     st.last = ns.last ? JSON.parse(JSON.stringify(Object.assign({}, ns.last, {seq:st.seq}))) : null;
     st.status = ns.matchOver ? 'finished' : 'playing';
-    st.turnDeadline = ns.matchOver ? null : Date.now()+GH_TURN_SECONDS*1000;
+    st.turnDeadline = ns.matchOver ? null : serverNow()+GH_TURN_SECONDS*1000;
   }
   async function ghCreateOnlineRoom(playerName){
     if(!ensureFirebase()) throw new Error('FIREBASE_NOT_CONFIGURED');
@@ -4529,6 +4970,15 @@
     }
     throw new Error('ROOM_CODE_EXHAUSTED');
   }
+
+  // 연결이 끊겼다 돌아오면 "접속 중"을 다시 켜고 onDisconnect 예약을 다시 건다
+  reconnectHooks.push(()=>{
+    if(!GH.online.active || !GH.online.roomRef || !GH.online.myColor) return;
+    const flag = GH.online.roomRef.child('players/'+GH.online.myColor+'/connected');
+    flag.set(true).catch(()=>{});
+    flag.onDisconnect().set(false).catch(()=>{});
+  });
+
   async function ghJoinOnlineRoom(codeRaw, playerName){
     if(!ensureFirebase()) throw new Error('FIREBASE_NOT_CONFIGURED');
     const code=codeRaw.toUpperCase().trim();
@@ -4539,7 +4989,12 @@
     const room=snap.val();
     if(room.players && room.players.blue) throw new Error('ROOM_FULL');
     if(!room.state || room.state.status!=='waiting') throw new Error('ROOM_ALREADY_STARTED');
-    await ref.child('players/blue').set({ name:playerName, connected:true });
+    // 동시에 두 명이 들어가도 한 명만 앉도록 빈 자리일 때만 들어간다 (transaction)
+    const seat = await ref.child('players/blue').transaction(cur=>{
+      if(cur!==null) return;                          // 이미 누가 앉았다 → 중단
+      return { name:playerName, connected:true };
+    });
+    if(!seat.committed) throw new Error('ROOM_FULL');
     ref.child('players/blue/connected').onDisconnect().set(false);
     return code;
   }
@@ -4571,7 +5026,7 @@
     GH.online.roomRef.transaction(room=>{
       did=false;
       if(!room || !room.state || room.state.status!=='playing') return room;
-      if(!room.state.turnDeadline || Date.now()<room.state.turnDeadline-200) return room;
+      if(!room.state.turnDeadline || serverNow()<room.state.turnDeadline-200) return room;
       const st=ghStateFromRoom(room.state);
       ghWriteState(room, ghSubmitPass(st, st.turn));
       did=true;
@@ -4635,7 +5090,10 @@
     const oppColor=OPP[GH.online.myColor];
     GH.online.opponentName=(room.players && room.players[oppColor] && room.players[oppColor].name) || '상대';
     showScreen('screen-game-gh'); ghUpdateStatusPill();
-    showCoinFlip(room.state.turn||room.state.roundFirst, GH.online.myColor, ()=> ghApplyRemote(GH._latestRoom||room));
+    showCoinFlip(room.state.turn||room.state.roundFirst, GH.online.myColor, ()=>{
+      if(!GH.online.roomRef) return;   // 동전 던지는 중에 나갔다면 중단
+      ghApplyRemote(GH._latestRoom||room);
+    }, GH.online.opponentName);
   }
   function ghApplyRemote(room){
     const ns=ghStateFromRoom(room.state);
@@ -4675,7 +5133,7 @@
     ghDetachRoomListener();
     GH.online.active=false; GH.online.roomCode=null; GH.online.myColor=null; GH.online.playerName=null;
     GH.online.opponentName=null; GH.online.roomRef=null; GH.online.turnDeadline=null; GH.online.connected=false;
-    GH.online.enteredPlaying=false; GH.online.recordWriteAttempted=false; GH._endedShown=false;
+    GH.online.enteredPlaying=false; GH.online.recordWriteAttempted=false; GH._endedShown=false; GH._latestRoom=null;
     $('#online-status-pill-gh').classList.remove('show');
   }
   function ghFriendlyOnlineError(e){
@@ -4805,6 +5263,7 @@
 
   function backToMainMenu(){
     stopTimer();
+    S._aiToken++;   // 메뉴로 나간 뒤에 AI가 수를 두지 않도록
     if(S.mode==='online') leaveOnlineRoom();
     showScreen('screen-start');
     $('#diff-row').classList.remove('active');
@@ -4814,11 +5273,15 @@
 
   $('#btn-back').addEventListener('click', backToMainMenu);
 
-  $('#btn-sound').addEventListener('click', ()=>{
+  // 소리 켜기/끄기: 네 게임의 버튼 아이콘을 항상 함께 바꾼다 (예전에는 결!합! 버튼 아이콘이 따로 놀았다)
+  function toggleSound(){
     Sound.enabled = !Sound.enabled;
-    $('#btn-sound').textContent = Sound.enabled ? '🔊' : '🔇';
-    $('#btn-sound-tj').textContent = Sound.enabled ? '🔊' : '🔇';
-  });
+    ['#btn-sound','#btn-sound-tj','#btn-sound-bw','#btn-sound-gh'].forEach(sel=>{
+      const b = $(sel);
+      if(b) b.textContent = Sound.enabled ? '🔊' : '🔇';
+    });
+  }
+  $('#btn-sound').addEventListener('click', toggleSound);
 
   $('#btn-rematch').addEventListener('click', ()=>{
     closeModal('#win-modal');
@@ -4928,12 +5391,7 @@
 
   $('#btn-back-tj').addEventListener('click', tjBackToMainMenu);
 
-  $('#btn-sound-tj').addEventListener('click', ()=>{
-    Sound.enabled = !Sound.enabled;
-    $('#btn-sound').textContent = Sound.enabled ? '🔊' : '🔇';
-    $('#btn-sound-tj').textContent = Sound.enabled ? '🔊' : '🔇';
-    $('#btn-sound-bw').textContent = Sound.enabled ? '🔊' : '🔇';
-  });
+  $('#btn-sound-tj').addEventListener('click', toggleSound);
 
   /* ---------- 흑과 백 이벤트 바인딩 ---------- */
   $('#hub-pick-bw').addEventListener('click', ()=>{ currentGame='blackwhite'; showScreen('screen-start-bw'); });
@@ -5037,12 +5495,7 @@
 
   $('#btn-back-bw').addEventListener('click', bwBackToMainMenu);
 
-  $('#btn-sound-bw').addEventListener('click', ()=>{
-    Sound.enabled = !Sound.enabled;
-    $('#btn-sound').textContent = Sound.enabled ? '🔊' : '🔇';
-    $('#btn-sound-tj').textContent = Sound.enabled ? '🔊' : '🔇';
-    $('#btn-sound-bw').textContent = Sound.enabled ? '🔊' : '🔇';
-  });
+  $('#btn-sound-bw').addEventListener('click', toggleSound);
 
   /* ---------- 관리자 모드 이벤트 바인딩 ---------- */
   $('#btn-open-admin').addEventListener('click', ()=>{
@@ -5070,9 +5523,10 @@
     const cfg = {
       russian: $('#toggle-russian').checked,
       twelve: $('#toggle-twelve').checked,
-      blackwhite: $('#toggle-bw').checked
+      blackwhite: $('#toggle-bw').checked,
+      gyeolhap: $('#toggle-gh').checked
     };
-    applyHubVisibility({russian:cfg.russian, twelve:cfg.twelve, blackwhite:cfg.blackwhite});
+    applyHubVisibility(cfg);
     if(!ensureFirebase()){
       $('#admin-visibility-msg').textContent = '이 브라우저에 임시로 적용했습니다 (Firebase 미설정 — 다른 사용자에게는 반영되지 않습니다).';
       $('#admin-visibility-msg').className='admin-msg err';
@@ -5165,13 +5619,7 @@
   $('#btn-close-rules-gh').addEventListener('click', ()=> closeModal('#rules-modal-gh'));
   $('#rules-modal-gh').addEventListener('click', e=>{ if(e.target.id==='rules-modal-gh') closeModal('#rules-modal-gh'); });
   $('#btn-back-gh').addEventListener('click', ghBackToMainMenu);
-  $('#btn-sound-gh').addEventListener('click', ()=>{
-    Sound.enabled=!Sound.enabled;
-    $('#btn-sound').textContent=Sound.enabled?'🔊':'🔇';
-    $('#btn-sound-tj').textContent=Sound.enabled?'🔊':'🔇';
-    $('#btn-sound-bw').textContent=Sound.enabled?'🔊':'🔇';
-    $('#btn-sound-gh').textContent=Sound.enabled?'🔊':'🔇';
-  });
+  $('#btn-sound-gh').addEventListener('click', toggleSound);
 })();
 </script>
 </body>
