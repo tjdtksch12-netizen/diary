@@ -740,6 +740,58 @@
   .bw-result-chip.tie{background:rgba(255,255,255,.1); color:var(--ivory-dim);}
 
 
+  /* ================= MONORAIL ================= */
+  .mr-wrap{max-width:640px; width:100%; margin:0 auto; display:flex; flex-direction:column; align-items:center; gap:10px;}
+  .bw-score-side.turn-on{color:var(--gold-bright);}
+  .bw-score-side.turn-on .dot{box-shadow:0 0 0 3px rgba(240,212,138,.45);}
+  .mr-supply{display:flex; flex-wrap:wrap; gap:4px; justify-content:center; max-width:380px; align-items:center;}
+  .mr-supply-label{font-size:11.5px; color:var(--ivory-dim); letter-spacing:.04em; margin-right:6px;}
+  .mr-supply-label b{color:var(--gold-bright); font-family:var(--display); font-size:13px;}
+  .mr-chip{width:14px; height:14px; border-radius:4px; background:linear-gradient(160deg,var(--gold-bright),var(--gold)); box-shadow:0 1px 2px rgba(0,0,0,.5);}
+  .mr-chip.used{background:rgba(255,255,255,.08); box-shadow:none;}
+  @media (max-width:400px){ .mr-supply{gap:3px; padding:0 8px;} .mr-chip{width:11px; height:11px; border-radius:3px;} .mr-supply-label{margin-right:4px;} }
+  .mr-banner{
+    width:100%; max-width:460px; text-align:center; font-size:13px; line-height:1.65; padding:9px 12px; border-radius:10px;
+    border:1px solid var(--bg-panel-edge); background:rgba(255,255,255,.03); color:var(--ivory-dim);
+  }
+  .mr-banner b{color:var(--gold-bright);}
+  .mr-banner.alert{border-color:var(--ruby-bright); background:rgba(232,99,122,.1); color:var(--ivory);}
+  .mr-board-frame{
+    width:min(94vw,640px); padding:10px; border-radius:18px; border:1px solid var(--gold-dim);
+    background:linear-gradient(160deg,#241f34,#171320); overflow-x:auto;
+    box-shadow:0 26px 60px -18px var(--shadow), inset 0 0 0 1px rgba(201,162,78,.12), inset 0 2px 14px rgba(0,0,0,.5);
+  }
+  .mr-board{display:grid; gap:1px; width:100%;}
+  .mr-cell{position:relative; aspect-ratio:1; border-radius:4px; background:rgba(0,0,0,.22); border:1px solid rgba(201,162,78,.07); user-select:none; -webkit-tap-highlight-color:transparent;}
+  .mr-cell.has-tile{border-color:transparent; background:transparent;}
+  .mr-cell svg{position:absolute; inset:-1px; width:calc(100% + 2px); height:calc(100% + 2px); display:block; pointer-events:none;}
+  .mr-cell.legal{border:1px dashed var(--gold-bright); background:rgba(240,212,138,.07); cursor:pointer;}
+  .mr-cell.legal::after{content:''; position:absolute; inset:0; margin:auto; width:18%; height:18%; border-radius:50%; background:var(--gold-bright); opacity:.5; animation:soft-blink 1.2s ease-in-out infinite;}
+  .mr-cell.ghost{cursor:pointer;}
+  .mr-cell.ghost svg{opacity:.92;}
+  .mr-cell.ghost.sel{box-shadow:0 0 0 2px var(--gold-bright), 0 0 16px 2px rgba(240,212,138,.55); z-index:2; border-radius:6px;}
+  .mr-cell.new-tile svg{animation:mr-pop .4s cubic-bezier(.2,1.4,.4,1);}
+  @keyframes mr-pop{0%{transform:scale(.3); opacity:0;}100%{transform:scale(1); opacity:1;}}
+  .mr-cell.win-cell svg{animation:mr-win 1s ease-in-out infinite alternate;}
+  @keyframes mr-win{from{filter:brightness(1);}to{filter:brightness(1.5) drop-shadow(0 0 5px rgba(240,212,138,.95));}}
+  .mr-palette{display:flex; gap:6px; justify-content:center; flex-wrap:wrap;}
+  .mr-shape-btn{
+    width:46px; height:46px; border-radius:10px; border:1px solid var(--bg-panel-edge); background:var(--bg-panel);
+    position:relative; overflow:hidden; padding:0;
+  }
+  .mr-shape-btn svg{position:absolute; inset:0; width:100%; height:100%; display:block;}
+  .mr-shape-btn:hover:not(:disabled){border-color:var(--gold-dim);}
+  .mr-shape-btn.on{border-color:var(--gold-bright); box-shadow:0 0 0 2px rgba(240,212,138,.45);}
+  .mr-shape-btn:disabled{opacity:.3; cursor:default;}
+  .mr-actions{display:flex; gap:8px; width:100%; max-width:460px;}
+  .mr-actions .online-action-btn{flex:1;}
+  .mr-actions .online-action-btn:disabled{opacity:.4; cursor:default;}
+  #btn-mr-declare{border-color:var(--ruby-bright); color:var(--ruby-bright);}
+  #btn-mr-declare:disabled{border-color:var(--bg-panel-edge); color:var(--ivory-dim);}
+  #btn-mr-giveup{border-color:var(--ruby-bright); color:var(--ruby-bright);}
+  #btn-mr-giveup:disabled{border-color:var(--bg-panel-edge); color:var(--ivory-dim);}
+  .mr-hint{font-size:12px; color:var(--ivory-dim); text-align:center; max-width:460px; line-height:1.65; min-height:20px;}
+
   /* ================= MODALS ================= */
   .modal-overlay{
     position:fixed; inset:0; background:rgba(6,5,10,.72);
@@ -838,6 +890,11 @@
           <span class="hub-card-icon">▲</span>
           <span class="hub-card-name">결! 합!</span>
           <span class="hub-card-desc">9개 타일 · 세 개의 조합을 찾아라</span>
+        </button>
+        <button class="hub-card" id="hub-pick-mr">
+          <span class="hub-card-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#120f1a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="6.5" width="17" height="11" rx="5"/></svg></span>
+          <span class="hub-card-name">모노레일</span>
+          <span class="hub-card-desc">철로 타일 · 순환선을 완성하라</span>
         </button>
       </div>
       <button class="rules-link" id="btn-open-admin" style="margin-top:20px;">관리자 모드</button>
@@ -1323,6 +1380,138 @@
     </div>
   </div>
 
+  <!-- ================= 모노레일: START SCREEN ================= -->
+  <section id="screen-start-mr" class="screen">
+    <div class="start-frame">
+      <button class="back-to-hub" id="btn-hub-from-start-mr">← 게임 선택</button>
+      <div class="corner tl"><svg viewBox="0 0 26 26"><path d="M2 24 Q2 2 24 2" fill="none" stroke="#c9a24e" stroke-width="1.4"/><circle cx="24" cy="2" r="1.6" fill="#c9a24e"/></svg></div>
+      <div class="corner tr"><svg viewBox="0 0 26 26"><path d="M2 24 Q2 2 24 2" fill="none" stroke="#c9a24e" stroke-width="1.4"/><circle cx="24" cy="2" r="1.6" fill="#c9a24e"/></svg></div>
+      <div class="corner bl"><svg viewBox="0 0 26 26"><path d="M2 24 Q2 2 24 2" fill="none" stroke="#c9a24e" stroke-width="1.4"/><circle cx="24" cy="2" r="1.6" fill="#c9a24e"/></svg></div>
+      <div class="corner br"><svg viewBox="0 0 26 26"><path d="M2 24 Q2 2 24 2" fill="none" stroke="#c9a24e" stroke-width="1.4"/><circle cx="24" cy="2" r="1.6" fill="#c9a24e"/></svg></div>
+
+      <div class="eyebrow-mark">순환선 데스매치</div>
+      <h1 class="title-kr">모노레일</h1>
+      <div class="title-sub">M O N O R A I L</div>
+      <p class="tagline">철로 타일을 번갈아 놓아 <b>기차역을 지나는 순환선</b>을 만들어라.<br>마지막 한 칸을 놓는 사람이 승리, 완성이 <b>불가능</b>하다 싶으면 선언하라.</p>
+
+      <div class="mode-stack">
+        <button class="mode-btn" id="btn-mode-online-mr">
+          <span class="icon">🌐</span>
+          <span class="txt"><strong>온라인 대결</strong><span>각자 기기로 방을 만들어 대결</span></span>
+        </button>
+        <div class="online-row" id="online-row-mr">
+          <input type="text" id="input-name-mr" class="text-input" placeholder="이름 (최대 10자)" maxlength="10">
+          <div class="online-actions">
+            <button class="online-action-btn primary" id="btn-create-room-mr">방 만들기</button>
+            <div class="join-row">
+              <input type="text" id="input-room-code-mr" class="text-input code-input" placeholder="코드" maxlength="4">
+              <button class="online-action-btn" id="btn-join-room-mr">참가하기</button>
+            </div>
+          </div>
+          <div class="online-error" id="online-error-mr"></div>
+        </div>
+        <button class="mode-btn" id="btn-mode-local-mr">
+          <span class="icon">⚔</span>
+          <span class="txt"><strong>2인 대결</strong><span>한 화면에서 번갈아 두기</span></span>
+        </button>
+        <button class="mode-btn" id="btn-mode-ai-mr">
+          <span class="icon">🚝</span>
+          <span class="txt"><strong>AI와 대결</strong><span>난이도를 골라 홀로 훈련하기</span></span>
+        </button>
+        <div class="diff-row" id="diff-row-mr">
+          <button class="diff-btn" data-diff="easy">쉬움</button>
+          <button class="diff-btn" data-diff="normal">보통</button>
+          <button class="diff-btn" data-diff="hard">어려움</button>
+        </div>
+      </div>
+
+      <div class="start-links">
+        <button class="rules-link" id="btn-rules-mr">게임 규칙 자세히 보기</button>
+        <button class="rules-link" id="btn-records-mr">전적 보기</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 모노레일: WAITING SCREEN ================= -->
+  <section id="screen-waiting-mr" class="screen">
+    <div class="start-frame">
+      <div class="corner tl"><svg viewBox="0 0 26 26"><path d="M2 24 Q2 2 24 2" fill="none" stroke="#c9a24e" stroke-width="1.4"/><circle cx="24" cy="2" r="1.6" fill="#c9a24e"/></svg></div>
+      <div class="corner tr"><svg viewBox="0 0 26 26"><path d="M2 24 Q2 2 24 2" fill="none" stroke="#c9a24e" stroke-width="1.4"/><circle cx="24" cy="2" r="1.6" fill="#c9a24e"/></svg></div>
+      <div class="corner bl"><svg viewBox="0 0 26 26"><path d="M2 24 Q2 2 24 2" fill="none" stroke="#c9a24e" stroke-width="1.4"/><circle cx="24" cy="2" r="1.6" fill="#c9a24e"/></svg></div>
+      <div class="corner br"><svg viewBox="0 0 26 26"><path d="M2 24 Q2 2 24 2" fill="none" stroke="#c9a24e" stroke-width="1.4"/><circle cx="24" cy="2" r="1.6" fill="#c9a24e"/></svg></div>
+      <div class="eyebrow-mark">방 코드</div>
+      <div class="room-code-display" id="waiting-room-code-mr">····</div>
+      <p class="tagline" id="waiting-status-text-mr">상대를 기다리는 중...</p>
+      <div class="waiting-spinner"><span class="spinner"></span></div>
+      <button class="rules-link" id="btn-cancel-waiting-mr">취소하고 나가기</button>
+    </div>
+  </section>
+
+  <!-- ================= 모노레일: GAME SCREEN ================= -->
+  <section id="screen-game-mr" class="screen">
+    <div class="game-header">
+      <button class="hdr-btn" id="btn-back-mr">← 메인으로</button>
+      <span class="hdr-title-group"><span class="hdr-title">모노레일</span><span class="online-pill" id="online-status-pill-mr"></span></span>
+      <div class="hdr-actions">
+        <button class="icon-btn" id="btn-records-ingame-mr" title="전적 보기">🏆</button>
+        <button class="icon-btn" id="btn-sound-mr" title="소리 켜기/끄기">🔊</button>
+        <button class="icon-btn" id="btn-rules-ingame-mr" title="규칙 보기">?</button>
+      </div>
+    </div>
+
+    <div class="mr-wrap">
+      <div class="bw-scorebar" id="mr-scorebar">
+        <div class="bw-score-side" id="mr-side-me"><span class="dot ruby"></span><span id="mr-name-me">루비</span></div>
+        <div class="timer-ring bw-timer" id="mr-timer">
+          <svg viewBox="0 0 36 36">
+            <circle cx="18" cy="18" r="15.5" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="3"/>
+            <circle cx="18" cy="18" r="15.5" fill="none" stroke="#c9a24e" stroke-width="3" stroke-linecap="round"
+              stroke-dasharray="97.4" stroke-dashoffset="0" id="mr-timer-arc" style="transition:stroke-dashoffset 1s linear, stroke .3s ease;"/>
+          </svg>
+          <span class="num" id="mr-timer-num">60</span>
+        </div>
+        <div class="bw-score-side right" id="mr-side-opp"><span id="mr-name-opp">사파이어</span><span class="dot sapphire"></span></div>
+      </div>
+
+      <div class="mr-supply" id="mr-supply"></div>
+      <div class="mr-banner" id="mr-banner">—</div>
+      <div class="ai-thinking" id="mr-ai-thinking"><span class="spinner"></span>AI가 생각 중...</div>
+
+      <div class="mr-board-frame"><div class="mr-board" id="mr-board"></div></div>
+
+      <div class="mr-palette" id="mr-palette"></div>
+
+      <div class="mr-actions">
+        <button class="online-action-btn" id="btn-mr-undo" disabled>되돌리기</button>
+        <button class="online-action-btn primary" id="btn-mr-confirm" disabled>배치 확정</button>
+      </div>
+      <div class="mr-actions">
+        <button class="online-action-btn" id="btn-mr-declare">불가능!</button>
+        <button class="online-action-btn" id="btn-mr-giveup" style="display:none;">완성 포기</button>
+      </div>
+      <div class="mr-hint" id="mr-hint"></div>
+    </div>
+  </section>
+
+  <!-- ================= 모노레일: RULES MODAL ================= -->
+  <div class="modal-overlay" id="rules-modal-mr">
+    <div class="modal-box">
+      <h2>게임 규칙</h2>
+      <div class="rules-body">
+        <ol>
+          <li><b>철로 타일 16개</b>(앞면 직선, 뒷면 ㄱ자 곡선 — 어느 쪽이든 골라 쓸 수 있음)와 <b>기차역 타일 2개</b>로 합니다. 기차역 2개가 나란히 놓인 채 시작합니다.</li>
+          <li>번갈아 자기 차례에 타일을 <b>1~3개</b> 놓습니다. 여러 개를 놓을 때는 <b>나란히 일렬로</b> 붙이고, 그중 하나는 이미 놓인 타일의 <b>상하좌우 한 면</b>에 맞닿아야 합니다.</li>
+          <li>놓는 순간에는 철로가 이어지지 않아도 됩니다. 하지만 최종적으로 놓인 <b>모든 타일</b>이 기차역을 지나 출발점으로 돌아오는 <b>하나의 순환선</b>이 되어야 합니다. (16개를 다 쓸 필요는 없습니다)</li>
+          <li><b>순환선을 완성하는 마지막 타일을 놓은 사람이 승리</b>합니다.</li>
+          <li>내 차례에 남은 타일로는 완성할 수 없다고 판단되면 <b>「불가능!」</b>을 선언할 수 있습니다. 그러면 상대가 남은 타일로 <b>직접 순환선을 완성</b>해야 하고, 성공하면 상대가, 실패(포기·시간 초과)하면 선언한 사람이 승리합니다.</li>
+          <li>불가능한 판인데도 선언하지 않고 타일을 놓으면, 다음 차례에 상대가 선언할 수 있습니다. 남은 타일이 없는데 완성되지 않았다면 다음 차례 사람이 승리합니다.</li>
+          <li>한 수는 <b>60초</b>(시간 초과 시 무작위 타일이 자동으로 놓임), 완성 도전은 <b>120초</b>입니다. 다시 대결하면 선공이 바뀝니다.</li>
+        </ol>
+      </div>
+      <button class="modal-close-btn" id="btn-close-rules-mr">확인</button>
+    </div>
+  </div>
+
   <!-- ================= GAME SCREEN ================= -->
   <section id="screen-game" class="screen">
     <div class="game-header">
@@ -1463,6 +1652,7 @@
         <label class="admin-toggle-row"><input type="checkbox" id="toggle-twelve" checked><span>십이장기</span></label>
         <label class="admin-toggle-row"><input type="checkbox" id="toggle-bw" checked><span>흑과 백</span></label>
         <label class="admin-toggle-row"><input type="checkbox" id="toggle-gh" checked><span>결!합!</span></label>
+        <label class="admin-toggle-row"><input type="checkbox" id="toggle-mr" checked><span>모노레일</span></label>
         <button class="online-action-btn primary admin-save-btn" id="btn-admin-save-visibility">표시 설정 저장</button>
         <div class="admin-msg" id="admin-visibility-msg"></div>
       </div>
@@ -1496,6 +1686,11 @@
           <button class="admin-mini-btn" data-path="ghRecords" data-name="결!합!" data-action="download">다운로드</button>
           <button class="admin-mini-btn danger" data-path="ghRecords" data-name="결!합!" data-action="delete">삭제</button>
         </div>
+        <div class="admin-record-row">
+          <span class="admin-record-name">모노레일</span>
+          <button class="admin-mini-btn" data-path="monoRecords" data-name="모노레일" data-action="download">다운로드</button>
+          <button class="admin-mini-btn danger" data-path="monoRecords" data-name="모노레일" data-action="delete">삭제</button>
+        </div>
         <div class="admin-msg" id="admin-records-msg"></div>
       </div>
     </div>
@@ -1504,6 +1699,352 @@
   <div class="toast" id="toast"></div>
 </div>
 
+<script>
+/* 모노레일 규칙 엔진 · 솔버 · AI (DOM과 무관한 순수 로직) */
+/* ===== 모노레일 엔진 (순수 규칙/솔버/AI — DOM 없음) ===== */
+(function(root){
+'use strict';
+const OFF=40, W=100, TRACKS=16;
+const STATION=16, RED=32, BLUE=64;
+const DK=[-W,1,W,-1], DX=[0,1,0,-1], DY=[-1,0,1,0];      // 방향: 0=북 1=동 2=남 3=서
+const SHAPES=[10,5,3,6,12,9];                              // ─ │ └ ┌ ┐ ┘ (포트 비트마스크)
+const LIMX=[-20,21], LIMY=[-20,20];
+const K=(x,y)=>(y+OFF)*W+(x+OFF);
+const KX=k=>(k%W)-OFF, KY=k=>Math.floor(k/W)-OFF;
+const opp=d=>(d+2)&3;
+const popc=m=>(m&1)+((m>>1)&1)+((m>>2)&1)+((m>>3)&1);
+const inBounds=k=>{const x=KX(k),y=KY(k);return x>=LIMX[0]&&x<=LIMX[1]&&y>=LIMY[0]&&y<=LIMY[1];};
+
+function newCells(){const c=new Map();c.set(K(0,0),10|STATION);c.set(K(1,0),10|STATION);return c;}
+const remainingOf=c=>TRACKS-(c.size-2);
+function adj(c,k){for(let d=0;d<4;d++)if(c.has(k+DK[d]))return true;return false;}
+function toObj(c){const o={};c.forEach((v,k)=>{o[KX(k)+','+KY(k)]=v;});return o;}
+function fromObj(o){const c=new Map();if(o)Object.keys(o).forEach(s=>{const p=s.split(',');c.set(K(+p[0],+p[1]),o[s]);});return c;}
+
+/* 배치 규칙: 1~3개, 일렬로 붙여서, 하나 이상은 기존 타일의 상하좌우에 맞닿게 */
+function validate(c,tiles){
+  const n=tiles.length;
+  if(n<1||n>3)return 'count';
+  if(n>remainingOf(c))return 'remaining';
+  for(const t of tiles){
+    if(SHAPES.indexOf(t[1]&15)<0)return 'shape';
+    if(c.has(t[0]))return 'occupied';
+    if(!inBounds(t[0]))return 'bounds';
+  }
+  if(n>1){
+    const xs=tiles.map(t=>KX(t[0])), ys=tiles.map(t=>KY(t[0]));
+    const row=ys.every(y=>y===ys[0]), col=xs.every(x=>x===xs[0]);
+    if(!row&&!col)return 'line';
+    const a=(row?xs:ys).slice().sort((p,q)=>p-q);
+    for(let i=1;i<n;i++)if(a[i]-a[i-1]!==1)return 'gap';
+  }
+  if(!tiles.some(t=>adj(c,t[0])))return 'adjacent';
+  return null;
+}
+function applyTiles(c,tiles,owner){const n=new Map(c);tiles.forEach(t=>n.set(t[0],(t[1]&15)|(owner||0)));return n;}
+
+/* 완성 판정: 모든 레일 끝이 맞물리고, 전부 하나의 순환선 */
+function complete(c){
+  if(c.size<4)return false;
+  for(const [k,v] of c){
+    const m=v&15;
+    for(let d=0;d<4;d++)if(m&(1<<d)){
+      const nv=c.get(k+DK[d]);
+      if(nv===undefined||!((nv&15)&(1<<opp(d))))return false;
+    }
+  }
+  const start=c.keys().next().value;
+  let cur=start,came=-1,count=0;
+  do{
+    const m=c.get(cur)&15;let nd=-1;
+    for(let d=0;d<4;d++)if((m&(1<<d))&&(came<0||d!==opp(came))){nd=d;break;}
+    if(nd<0)return false;
+    cur+=DK[nd];came=nd;count++;
+  }while(cur!==start&&count<=c.size);
+  return cur===start&&count===c.size;
+}
+
+/* 솔버: 남은 타일(최대 maxNew개)로 순환선을 완성할 수 있는가? (all=true면 모든 완성 방법 수집) */
+function solve(c0,o){
+  o=o||{};
+  const rem=remainingOf(c0);
+  const maxNew=Math.min(o.maxNew==null?rem:o.maxNew,rem);
+  const all=!!o.all, limit=o.limit||1, budget=o.budget||300000, rnd=o.rnd||null;
+  const c=new Map(c0), sols=[], nt=[];
+  let nodes=0, aborted=false;
+  function rec(){
+    if(++nodes>budget){aborted=true;return true;}
+    const need=new Map();
+    for(const [k,v] of c){
+      const m=v&15;
+      for(let d=0;d<4;d++)if(m&(1<<d)){
+        const nk=k+DK[d], nv=c.get(nk);
+        if(nv===undefined)need.set(nk,(need.get(nk)||0)|(1<<opp(d)));
+        else if(!((nv&15)&(1<<opp(d))))return false;
+      }
+    }
+    if(need.size===0){
+      if(complete(c)){sols.push(nt.map(t=>[t[0],t[1]]));return !all||sols.length>=limit;}
+      return false;
+    }
+    const ps=[];
+    for(const [nk,rm] of need){
+      if(!inBounds(nk))return false;
+      const pc=popc(rm);
+      if(pc>2)return false;
+      const x=KX(nk),y=KY(nk);
+      ps.push([x,y]);if(pc===2)ps.push([x,y]);
+    }
+    let sum=0;
+    for(let i=0;i<ps.length;i++){
+      let md=1e9;
+      for(let j=0;j<ps.length;j++){if(i===j)continue;const d=Math.abs(ps[i][0]-ps[j][0])+Math.abs(ps[i][1]-ps[j][1]);if(d<md)md=d;}
+      sum+=md+1;
+    }
+    let lb=Math.ceil(sum/2);
+    if((c.size+lb)&1)lb++;
+    if(nt.length+lb>maxNew)return false;
+    let pick=-1,pickRm=0,pickScore=1e9;
+    for(const [nk,rm] of need){
+      let sc;
+      if(popc(rm)===2)sc=-1;
+      else{
+        const x=KX(nk),y=KY(nk);let md=1e9;
+        for(const p of ps){if(p[0]===x&&p[1]===y)continue;const d=Math.abs(p[0]-x)+Math.abs(p[1]-y);if(d<md)md=d;}
+        sc=md;
+      }
+      if(rnd)sc+=rnd()*0.5;
+      if(sc<pickScore){pickScore=sc;pick=nk;pickRm=rm;}
+    }
+    let opts;
+    if(popc(pickRm)===2)opts=[pickRm];
+    else{
+      const px=KX(pick),py=KY(pick),sc=[];
+      for(let e=0;e<4;e++)if(!(pickRm&(1<<e))){
+        const nx=px+DX[e],ny=py+DY[e];let md=1e9;
+        for(const p of ps){if(p[0]===px&&p[1]===py)continue;const d=Math.abs(p[0]-nx)+Math.abs(p[1]-ny);if(d<md)md=d;}
+        sc.push([md+(rnd?rnd()*0.7:0),pickRm|(1<<e)]);
+      }
+      sc.sort((a,b)=>a[0]-b[0]);
+      opts=sc.map(s=>s[1]);
+    }
+    for(const m of opts){
+      c.set(pick,m);nt.push([pick,m]);
+      const stop=rec();
+      nt.pop();c.delete(pick);
+      if(stop)return true;
+    }
+    return false;
+  }
+  rec();
+  return {found:sols.length>0,solutions:sols,aborted:aborted,nodes:nodes};
+}
+
+/* 한 번의 턴(1~3개 일렬 배치)으로 순환선을 완성하는 수들 */
+function winningMoves(c){
+  const r=solve(c,{maxNew:3,all:true,limit:500,budget:200000});
+  const out=[];
+  for(const s of r.solutions)if(s.length>=1&&validate(c,s)===null)out.push({tiles:s});
+  return out;
+}
+
+/* 완성안(comp)의 일부를 이번 턴 배치로 잘라낸 후보 수들 */
+function movesFromCompletion(c,comp){
+  const map=new Map(comp.map(t=>[t[0],t[1]]));
+  const rem=remainingOf(c), out=[], seen=new Set();
+  for(const k of map.keys()){
+    for(const ax of [1,W]){
+      const seg=[];
+      for(let len=1;len<=3&&len<=rem;len++){
+        const kk=k+ax*(len-1);
+        if(!map.has(kk))break;
+        seg.push([kk,map.get(kk)]);
+        if(!seg.some(t=>adj(c,t[0])))continue;
+        const sig=seg.map(t=>t[0]+':'+t[1]).join('|');
+        if(seen.has(sig))continue;
+        seen.add(sig);out.push({tiles:seg.map(t=>[t[0],t[1]])});
+      }
+    }
+  }
+  return out;
+}
+function candidateMoves(c,comps){
+  const seen=new Set(), out=[];
+  for(const comp of comps)for(const mv of movesFromCompletion(c,comp)){
+    const sig=mv.tiles.map(t=>t[0]+':'+t[1]).sort().join('|');
+    if(seen.has(sig))continue;seen.add(sig);out.push(mv);
+  }
+  return out;
+}
+function sampleCompletions(c,n,rnd,budget){
+  const res=[], seen=new Set();
+  for(let i=0;i<n;i++){
+    const r=solve(c,{rnd:rnd,budget:budget||60000});
+    if(!r.found)break;
+    const sig=r.solutions[0].map(t=>t[0]+':'+t[1]).sort().join('|');
+    if(!seen.has(sig)){seen.add(sig);res.push(r.solutions[0]);}
+  }
+  return res;
+}
+
+/* 완성안을 실제 배치 순서(한 번에 최대 3개 일렬)로 풀어낸 계획 */
+function planMoves(c,sol){
+  const left=new Map(sol.map(t=>[t[0],t[1]]));
+  let cur=new Map(c);const plan=[];
+  while(left.size){
+    let best=null;
+    for(const k of left.keys()){
+      for(const ax of [1,W]){
+        const seg=[];
+        for(let len=1;len<=3;len++){
+          const kk=k+ax*(len-1);
+          if(!left.has(kk))break;
+          seg.push([kk,left.get(kk)]);
+          if(seg.some(t=>adj(cur,t[0]))&&(!best||seg.length>best.length))best=seg.map(t=>[t[0],t[1]]);
+        }
+      }
+    }
+    if(!best)break;
+    plan.push({tiles:best});
+    cur=applyTiles(cur,best);
+    best.forEach(t=>left.delete(t[0]));
+  }
+  return plan;
+}
+
+/* 무작위 합법 수(쉬움 AI, 시간 초과 자동 착수) */
+function randomMove(c,rnd){
+  rnd=rnd||Math.random;
+  const rem=remainingOf(c);
+  if(rem<=0)return null;
+  const cand=[];
+  for(const k of c.keys())for(let d=0;d<4;d++){const nk=k+DK[d];if(!c.has(nk)&&inBounds(nk))cand.push(nk);}
+  if(!cand.length)return null;
+  for(let tries=0;tries<60;tries++){
+    const k0=cand[Math.floor(rnd()*cand.length)];
+    const ax=rnd()<0.5?1:W, len=1+Math.floor(rnd()*Math.min(3,rem));
+    const tiles=[];
+    for(let i=0;i<len;i++)tiles.push([k0+ax*i,SHAPES[Math.floor(rnd()*6)]]);
+    if(validate(c,tiles)===null)return {type:'move',tiles:tiles};
+  }
+  return null;
+}
+
+/* 게임 트리 탐색: 현재 차례인 쪽이 강제로 이기면 true, 강제로 지면 false, 모르면 null
+   (불가능한 위치는 선언한 쪽 = 현재 차례가 이기므로 true) */
+function stateKey(c){const a=[];for(const [k,v] of c)a.push(k*16+(v&15));a.sort((x,y)=>x-y);return a.join(',');}
+function gameValue(c,depth,memo,deadline,stats){
+  const key=stateKey(c), m=memo.get(key);
+  if(m&&(m.v!==null||m.d>=depth))return m.v;
+  if(Date.now()>deadline){stats.timeout=true;return null;}
+  const A=solve(c,{all:true,limit:2500,budget:250000});
+  const trunc=A.aborted||A.solutions.length>=2500;
+  let v=null;
+  if(!A.found&&!A.aborted)v=true;
+  else if(A.solutions.some(s=>s.length<=3&&validate(c,s)===null))v=true;
+  else if(depth>0){
+    const cands=candidateMoves(c,A.solutions);
+    let unknown=trunc,win=false;
+    for(const mv of cands){
+      const cv=gameValue(applyTiles(c,mv.tiles),depth-1,memo,deadline,stats);
+      if(cv===false){win=true;break;}
+      if(cv===null)unknown=true;
+      if(stats.timeout)break;
+    }
+    v=win?true:(unknown||stats.timeout?null:false);
+  }
+  if(!stats.timeout||v!==null)memo.set(key,{v:v,d:depth});
+  return v;
+}
+
+/* AI 한 턴: {type:'move',tiles} 또는 {type:'declare'} */
+function aiTurn(c,diff,rnd,timeMs){
+  rnd=rnd||Math.random;timeMs=timeMs||700;
+  const rem=remainingOf(c);
+  const r0=solve(c,{budget:250000});
+  const possible=r0.found||r0.aborted;
+  if(!possible){
+    if(diff==='easy'&&rnd()<0.4){const m=randomMove(c,rnd);if(m)return m;}
+    return {type:'declare'};
+  }
+  const wm=winningMoves(c);
+  if(wm.length&&(diff!=='easy'||rnd()<0.75))return {type:'move',tiles:wm[Math.floor(rnd()*wm.length)].tiles,win:true};
+  if(diff==='hard'&&r0.found&&c.size>=9&&r0.solutions[0].length>=4&&rnd()<0.1)return {type:'declare',bluff:true};
+  if(diff==='easy'&&rnd()<0.6){const m=randomMove(c,rnd);if(m)return m;}
+  const pickRand=a=>a[Math.floor(rnd()*a.length)];
+  const nSamples=diff==='hard'?14:8;
+  if(diff!=='hard'||rem>11){
+    const cands=candidateMoves(c,sampleCompletions(c,nSamples,rnd));
+    const safe=[],risky=[];
+    for(const mv of cands){
+      const c2=applyTiles(c,mv.tiles);
+      if(complete(c2))return {type:'move',tiles:mv.tiles,win:true};
+      (winningMoves(c2).length===0?safe:risky).push(mv);
+    }
+    const pool=safe.length?safe:risky;
+    if(pool.length)return {type:'move',tiles:pickRand(pool).tiles};
+    return randomMove(c,rnd)||{type:'declare'};
+  }
+  // 어려움(후반): 게임 트리를 깊이 늘려 가며 상대가 강제로 지는 수를 찾는다
+  const t0=Date.now(), deadline=t0+timeMs, memo=new Map(), stats={timeout:false};
+  const A=solve(c,{all:true,limit:2500,budget:250000});
+  const trunc=A.aborted||A.solutions.length>=2500;
+  const cands=candidateMoves(c,A.solutions);
+  for(let i=cands.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[cands[i],cands[j]]=[cands[j],cands[i]];}
+  const kids=cands.map(mv=>applyTiles(c,mv.tiles));
+  for(let i=0;i<cands.length;i++)if(complete(kids[i]))return {type:'move',tiles:cands[i].tiles,win:true};
+  let chosen=null,lost=false;
+  for(let depth=0;depth<=12&&!chosen;depth++){
+    let allTrue=cands.length>0;
+    for(let i=0;i<cands.length;i++){
+      const v=gameValue(kids[i],depth,memo,deadline,stats);
+      if(stats.timeout)break;
+      if(v===false){chosen=cands[i];break;}
+      if(v!==true)allTrue=false;
+    }
+    if(chosen||stats.timeout)break;
+    if(allTrue&&!trunc){lost=true;break;}
+  }
+  if(chosen)return {type:'move',tiles:chosen.tiles};
+  if(lost)return {type:'declare',bluff:true};
+  let best=null,bestScore=1e9;
+  for(let i=0;i<cands.length;i++){
+    const mv=cands[i];
+    if(Date.now()-t0>timeMs+500&&best)break;
+    const mm=memo.get(stateKey(kids[i]));
+    if(mm&&mm.v===true)continue;
+    const c2=kids[i];
+    if(winningMoves(c2).length>0)continue;
+    const B=solve(c2,{all:true,limit:800,budget:200000});
+    const replies=candidateMoves(c2,B.solutions);
+    let safeCnt=0;
+    for(const rp of replies){
+      const c3=applyTiles(c2,rp.tiles);
+      if(complete(c3)){safeCnt=1e6;break;}
+      if(winningMoves(c3).length===0)safeCnt++;
+    }
+    if(safeCnt<bestScore){bestScore=safeCnt;best=mv;if(safeCnt===0)break;}
+  }
+  if(best)return {type:'move',tiles:best.tiles};
+  return randomMove(c,rnd)||{type:'declare'};
+}
+
+/* AI가 도전을 받았을 때: 완성 계획(없으면 null). 쉬움은 긴 완성에서 실패할 수 있음 */
+function aiChallenge(c,diff,rnd){
+  rnd=rnd||Math.random;
+  const r=solve(c,{budget:600000,rnd:rnd});
+  if(!r.found)return null;
+  const sol=r.solutions[0];
+  if(diff==='easy'&&sol.length>=5&&rnd()<0.5)return null;
+  if(diff==='normal'&&sol.length>=8&&rnd()<0.2)return null;
+  return planMoves(c,sol);
+}
+
+const API={OFF,W,TRACKS,STATION,RED,BLUE,DK,DX,DY,SHAPES,LIMX,LIMY,K,KX,KY,inBounds,newCells,remainingOf,adj,toObj,fromObj,validate,applyTiles,complete,solve,winningMoves,movesFromCompletion,candidateMoves,sampleCompletions,planMoves,randomMove,aiTurn,aiChallenge,popc,opp};
+if(typeof module!=='undefined'&&module.exports)module.exports=API;else root.MR=API;
+})(typeof window!=='undefined'?window:globalThis);
+
+</script>
 <script>
 (function(){
   "use strict";
@@ -2280,9 +2821,18 @@
     return code;
   }
 
+  /* [수정 1] 서버가 응답하지 않을 때 버튼이 영원히 잠겨 있지 않도록 제한 시간을 둔다 */
+  function withTimeout(p, ms){
+    return Promise.race([
+      p,
+      new Promise((_,rej)=> setTimeout(()=> rej(new Error('TIMEOUT')), ms))
+    ]);
+  }
+
   // 러시아 장기는 기존 index (7)의 6자리 방 코드 형식을 사용
+  // [수정 3] 난수 문자열이 짧게 나와도 항상 6자리가 되도록 보정
   function generateRussianRoomCode(){
-    return Math.random().toString(36).slice(2,8).toUpperCase();
+    return (Math.random().toString(36).slice(2)+'000000').slice(0,6).toUpperCase();
   }
 
   function roomPath(code){ return 'rooms/RG/'+code; }
@@ -2458,7 +3008,8 @@
     const ref = fbDb.ref(roomPath(code));
 
     // 첫 번째 앱과 같이 방 본체를 먼저 생성합니다.
-    await ref.set(legacyRoomBase(playerName));
+    // [수정 1] 서버 응답이 없으면 10초 뒤 TIMEOUT 오류로 알려 준다
+    await withTimeout(ref.set(legacyRoomBase(playerName)), 10000);
 
     const uid = sanitizeKey(playerName);
     startOnlinePresence(ref,uid);
@@ -2472,7 +3023,8 @@
     if(code.length!==6) throw new Error('INVALID_CODE');
 
     const ref = fbDb.ref(roomPath(code));
-    const snap = await ref.once('value');
+    // [수정 1] 응답 없음 방지
+    const snap = await withTimeout(ref.once('value'), 10000);
     const room = snap.val();
 
     if(!room) throw new Error('ROOM_NOT_FOUND');
@@ -2482,11 +3034,15 @@
     if(room.started || room.status!=='WAITING') throw new Error('ROOM_ALREADY_STARTED');
 
     // 두 명이 동시에 참가 버튼을 누르는 경합을 막습니다.
-    const tx = await ref.transaction(current=>{
-      if(!current || current.status!=='WAITING' || current.started || current.p2) return;
+    // [수정 2] transaction은 처음에 로컬 캐시(null)로 먼저 호출될 수 있다.
+    //          이때 중단(undefined)하면 참가가 항상 실패하므로, null이면 그대로 돌려줘서
+    //          서버의 실제 값으로 다시 시도하게 한다.
+    const tx = await withTimeout(ref.transaction(current=>{
+      if(current===null) return current;
+      if(current.status!=='WAITING' || current.started || current.p2) return;
       current.p2={uid:sanitizeKey(playerName),name:playerName,score:0};
       return current;
-    });
+    }), 10000);
 
     if(!tx.committed){
       const latest = tx.snapshot && tx.snapshot.val();
@@ -2893,7 +3449,9 @@
       INVALID_CODE:'방 코드는 6자리입니다.',
       SAME_NAME:'방장과 같은 이름으로 참가할 수 없습니다.',
       ROOM_INVALID:'방 데이터가 올바르지 않습니다.',
-      ROOM_JOIN_FAILED:'방 참가에 실패했습니다. 잠시 후 다시 시도해주세요.'
+      ROOM_JOIN_FAILED:'방 참가에 실패했습니다. 잠시 후 다시 시도해주세요.',
+      // [수정 1] 서버 응답 없음 안내
+      TIMEOUT:'Firebase 서버 응답이 없습니다. 인터넷 연결, databaseURL, Realtime Database 생성 여부와 규칙(만료 여부)을 확인해주세요.'
     };
 
     return map[msg]||('연결 중 문제가 발생했습니다. ('+(msg||'알 수 없는 오류')+')');
@@ -3512,13 +4070,13 @@
     for(let attempt=0; attempt<6; attempt++){
       const code = generateRoomCode();
       const ref = fbDb.ref(tjRoomPath(code));
-      const snap = await ref.once('value');
+      const snap = await withTimeout(ref.once('value'), 10000);
       if(!snap.exists()){
-        await ref.set({
+        await withTimeout(ref.set({
           createdAt: firebase.database.ServerValue.TIMESTAMP,
           players:{ red:{ name:playerName, connected:true } },
           state:{ status:'waiting', board:tjSerializeBoard(tjInitialBoard()), hand:tjEmptyHand(), turn:null, turnDeadline:null, winner:null, winCell:null, moveSeq:0 }
-        });
+        }), 10000);
         ref.child('players/red/connected').onDisconnect().set(false);
         return code;
       }
@@ -3540,16 +4098,16 @@
     const code = codeRaw.toUpperCase().trim();
     if(code.length!==4) throw new Error('INVALID_CODE');
     const ref = fbDb.ref(tjRoomPath(code));
-    const snap = await ref.once('value');
+    const snap = await withTimeout(ref.once('value'), 10000);
     if(!snap.exists()) throw new Error('ROOM_NOT_FOUND');
     const room = snap.val();
     if(room.players && room.players.blue) throw new Error('ROOM_FULL');
     if(!room.state || room.state.status!=='waiting') throw new Error('ROOM_ALREADY_STARTED');
     // 두 사람이 동시에 같은 방에 들어가면 나중 사람이 앞사람을 덮어쓰던 문제 → 빈 자리일 때만 들어간다 (transaction)
-    const seat = await ref.child('players/blue').transaction(cur=>{
+    const seat = await withTimeout(ref.child('players/blue').transaction(cur=>{
       if(cur!==null) return;                          // 이미 누가 앉았다 → 중단
       return { name:playerName, connected:true };
-    });
+    }), 10000);
     if(!seat.committed) throw new Error('ROOM_FULL');
     ref.child('players/blue/connected').onDisconnect().set(false);
     return code;
@@ -3784,7 +4342,8 @@
       ROOM_FULL:'이미 인원이 가득 찬 방입니다.',
       ROOM_ALREADY_STARTED:'이미 시작된 대결입니다.',
       INVALID_CODE:'방 코드는 4자리입니다.',
-      ROOM_CODE_EXHAUSTED:'방 생성에 실패했습니다. 다시 시도해주세요.'
+      ROOM_CODE_EXHAUSTED:'방 생성에 실패했습니다. 다시 시도해주세요.',
+      TIMEOUT:'Firebase 서버 응답이 없습니다. 인터넷 연결, databaseURL, Realtime Database 규칙(만료 여부)을 확인해주세요.'
     };
     return map[msg] || '연결 중 문제가 발생했습니다. 다시 시도해주세요.';
   }
@@ -4243,15 +4802,15 @@
     for(let attempt=0; attempt<6; attempt++){
       const code = generateRoomCode();
       const ref = fbDb.ref(bwRoomPath(code));
-      const snap = await ref.once('value');
+      const snap = await withTimeout(ref.once('value'), 10000);
       if(!snap.exists()){
-        await ref.set({
+        await withTimeout(ref.set({
           createdAt: firebase.database.ServerValue.TIMESTAMP,
           players:{ red:{ name:playerName, connected:true } },
           state:{ status:'waiting', tilesRed:bwFreshTiles(), tilesBlue:bwFreshTiles(), round:1, firstPlayer:null,
                    scoreRed:0, scoreBlue:0, overtimeCount:0, pending:null, matchOver:false, matchWinner:null,
                    turnDeadline:null, lastRound:null }
-        });
+        }), 10000);
         ref.child('players/red/connected').onDisconnect().set(false);
         return code;
       }
@@ -4272,16 +4831,16 @@
     const code = codeRaw.toUpperCase().trim();
     if(code.length!==4) throw new Error('INVALID_CODE');
     const ref = fbDb.ref(bwRoomPath(code));
-    const snap = await ref.once('value');
+    const snap = await withTimeout(ref.once('value'), 10000);
     if(!snap.exists()) throw new Error('ROOM_NOT_FOUND');
     const room = snap.val();
     if(room.players && room.players.blue) throw new Error('ROOM_FULL');
     if(!room.state || room.state.status!=='waiting') throw new Error('ROOM_ALREADY_STARTED');
     // 동시에 두 명이 들어가도 한 명만 앉도록 빈 자리일 때만 들어간다 (transaction)
-    const seat = await ref.child('players/blue').transaction(cur=>{
+    const seat = await withTimeout(ref.child('players/blue').transaction(cur=>{
       if(cur!==null) return;                          // 이미 누가 앉았다 → 중단
       return { name:playerName, connected:true };
-    });
+    }), 10000);
     if(!seat.committed) throw new Error('ROOM_FULL');
     ref.child('players/blue/connected').onDisconnect().set(false);
     return code;
@@ -4516,7 +5075,8 @@
       ROOM_FULL:'이미 인원이 가득 찬 방입니다.',
       ROOM_ALREADY_STARTED:'이미 시작된 대결입니다.',
       INVALID_CODE:'방 코드는 4자리입니다.',
-      ROOM_CODE_EXHAUSTED:'방 생성에 실패했습니다. 다시 시도해주세요.'
+      ROOM_CODE_EXHAUSTED:'방 생성에 실패했습니다. 다시 시도해주세요.',
+      TIMEOUT:'Firebase 서버 응답이 없습니다. 인터넷 연결, databaseURL, Realtime Database 규칙(만료 여부)을 확인해주세요.'
     };
     return map[msg] || '연결 중 문제가 발생했습니다. 다시 시도해주세요.';
   }
@@ -4573,6 +5133,7 @@
     $('#hub-pick-twelve').style.display = (c.twelve===false) ? 'none' : '';
     $('#hub-pick-bw').style.display = (c.blackwhite===false) ? 'none' : '';
     $('#hub-pick-gh').style.display = (c.gyeolhap===false) ? 'none' : '';
+    $('#hub-pick-mr').style.display = (c.monorail===false) ? 'none' : '';
   }
   function loadAndApplyHubVisibility(){
     if(!ensureFirebase()) return;
@@ -4592,6 +5153,7 @@
       $('#toggle-twelve').checked = $('#hub-pick-twelve').style.display!=='none';
       $('#toggle-bw').checked = $('#hub-pick-bw').style.display!=='none';
       $('#toggle-gh').checked = $('#hub-pick-gh').style.display!=='none';
+      $('#toggle-mr').checked = $('#hub-pick-mr').style.display!=='none';
       return;
     }
     adminConfigRef().child('gamesEnabled').once('value').then(snap=>{
@@ -4600,6 +5162,7 @@
       $('#toggle-twelve').checked = c.twelve!==false;
       $('#toggle-bw').checked = c.blackwhite!==false;
       $('#toggle-gh').checked = c.gyeolhap!==false;
+      $('#toggle-mr').checked = c.monorail!==false;
     }).catch(()=>{});
   }
 
@@ -4957,13 +5520,13 @@
     for(let attempt=0; attempt<6; attempt++){
       const code=generateRoomCode();
       const ref=fbDb.ref(ghRoomPath(code));
-      const snap=await ref.once('value');
+      const snap=await withTimeout(ref.once('value'), 10000);
       if(!snap.exists()){
-        await ref.set({
+        await withTimeout(ref.set({
           createdAt: firebase.database.ServerValue.TIMESTAMP,
           players:{ red:{ name:playerName, connected:true } },
           state:{ status:'waiting', round:1, scoreRed:0, scoreBlue:0, tiles:ghDealRound().map(ghTileStr), passStreak:0, overtimeCount:0, matchOver:false, seq:0 }
-        });
+        }), 10000);
         ref.child('players/red/connected').onDisconnect().set(false);
         return code;
       }
@@ -4984,16 +5547,16 @@
     const code=codeRaw.toUpperCase().trim();
     if(code.length!==4) throw new Error('INVALID_CODE');
     const ref=fbDb.ref(ghRoomPath(code));
-    const snap=await ref.once('value');
+    const snap=await withTimeout(ref.once('value'), 10000);
     if(!snap.exists()) throw new Error('ROOM_NOT_FOUND');
     const room=snap.val();
     if(room.players && room.players.blue) throw new Error('ROOM_FULL');
     if(!room.state || room.state.status!=='waiting') throw new Error('ROOM_ALREADY_STARTED');
     // 동시에 두 명이 들어가도 한 명만 앉도록 빈 자리일 때만 들어간다 (transaction)
-    const seat = await ref.child('players/blue').transaction(cur=>{
+    const seat = await withTimeout(ref.child('players/blue').transaction(cur=>{
       if(cur!==null) return;                          // 이미 누가 앉았다 → 중단
       return { name:playerName, connected:true };
-    });
+    }), 10000);
     if(!seat.committed) throw new Error('ROOM_FULL');
     ref.child('players/blue/connected').onDisconnect().set(false);
     return code;
@@ -5141,7 +5704,8 @@
       FIREBASE_NOT_CONFIGURED:'Firebase 설정이 필요합니다. 파일 상단 firebaseConfig 값을 채워주세요.',
       ROOM_NOT_FOUND:'해당 코드의 방을 찾을 수 없습니다.', ROOM_FULL:'이미 인원이 가득 찬 방입니다.',
       ROOM_ALREADY_STARTED:'이미 시작된 대결입니다.', INVALID_CODE:'방 코드는 4자리입니다.',
-      ROOM_CODE_EXHAUSTED:'방 생성에 실패했습니다. 다시 시도해주세요.'
+      ROOM_CODE_EXHAUSTED:'방 생성에 실패했습니다. 다시 시도해주세요.',
+      TIMEOUT:'Firebase 서버 응답이 없습니다. 인터넷 연결, databaseURL, Realtime Database 규칙(만료 여부)을 확인해주세요.'
     };
     return map[e && e.message] || '연결 중 문제가 발생했습니다. 다시 시도해주세요.';
   }
@@ -5168,6 +5732,954 @@
         return `<div class="lb-row"><span class="lb-rank">${i+1}</span><span class="lb-name">${escapeHtml(r.name)}</span><span class="lb-stats">${r.wins||0}승 ${r.losses||0}패 · ${rate}%</span></div>`;
       }).join('') || '<div class="my-record-stats">아직 기록이 없습니다.</div>';
     }).catch(()=>{ $('#leaderboard-list').innerHTML=''; });
+  }
+
+  /* =====================================================
+     모노레일 (Monorail) — 순환선 데스매치
+     규칙 엔진·솔버·AI는 위쪽 별도 <script>의 window.MR 에 있고, 여기서는 화면과 진행만 맡는다.
+     - 보드 값: 칸 번호 -> 레일 방향 비트(1=북 2=동 4=남 8=서) | 16=기차역 | 32=루비가 놓음 | 64=사파이어가 놓음
+     - 손에 든 타일(draft)은 확정 전까지 MG.draft 에만 있고, 확정하면 한꺼번에 보드에 반영한다.
+     - 한 수 60초(시간 초과 시 무작위 자동 착수), 「불가능!」 선언을 받은 쪽의 완성 도전은 120초.
+  ===================================================== */
+  const MG_TURN_SECONDS = 60;
+  const MG_CHALLENGE_SECONDS = 120;
+  const MG_MARGIN = 3;   // 놓을 수 있는 칸이 항상 화면 안에 들어오도록 타일 둘레에 남기는 빈 칸 수(한 번에 3개까지 뻗을 수 있다)
+
+  const MG = {
+    mode:null, aiDifficulty:'normal', aiOwner:'blue',
+    cells:MR.newCells(), turn:'red', phase:'play', challenger:null, first:'red',
+    over:false, winner:null, endReason:null, endPhase:'play',
+    draft:[], sel:-1, lastNew:new Set(),
+    timeLeft:MG_TURN_SECONDS, timerHandle:null,
+    _aiToken:0, _armed:{}, _armTimers:{},
+    online:{
+      active:false, roomCode:null, myColor:null, playerName:null, opponentName:null,
+      roomRef:null, listenerRef:null, turnDeadline:null, connected:false,
+      enteredPlaying:false, recordWriteAttempted:false, lastRoom:null, lastSeq:undefined
+    }
+  };
+
+  function mgMyColor(){ return MG.mode==='online' ? (MG.online.myColor||'red') : 'red'; }
+  function mgOwnerFlag(color){ return color==='red' ? MR.RED : MR.BLUE; }
+  function mgDraftIndex(k){ for(let i=0;i<MG.draft.length;i++) if(MG.draft[i].k===k) return i; return -1; }
+  function mgDraftTiles(){ return MG.draft.map(d=>[d.k,d.mask]); }
+  function mgRem(){ return MR.remainingOf(MG.cells); }
+  function mgArr(v){ return Array.isArray(v) ? v : (v ? Object.keys(v).map(k=>v[k]) : []); }
+
+  /* 이름 뒤에 붙는 말(이/가, 은/는, 의)을 자연스럽게 — 상대 이름에는 '님'을 붙여 받침 문제를 피한다 */
+  function mgNameInfo(c){
+    if(MG.mode==='local') return [c==='red'?'루비 진영':'사파이어 진영', true];
+    if(MG.mode==='ai') return c===MG.aiOwner ? ['AI', false] : ['당신', true];
+    return c===MG.online.myColor ? ['당신', true] : [(MG.online.opponentName||'상대')+'님', true];
+  }
+  function mgParticle(kind, batchim){ return kind==='subj' ? (batchim?'이':'가') : kind==='topic' ? (batchim?'은':'는') : '의'; }
+  function mgPart(c,kind){ const [n,b]=mgNameInfo(c); return n+mgParticle(kind,b); }
+  function mgB(c,kind){ const [n,b]=mgNameInfo(c); return '<b>'+escapeHtml(n)+'</b>'+mgParticle(kind,b); }
+
+  /* =====================================================
+     타일 그림 (SVG) — 이름·방향은 엔진의 비트 규칙과 같다 (1=북 2=동 4=남 8=서)
+  ===================================================== */
+  const MG_ARC = {
+    3:'M50,0 A50,50 0 0 0 100,50',     // 북-동
+    6:'M100,50 A50,50 0 0 0 50,100',   // 동-남
+    12:'M50,100 A50,50 0 0 0 0,50',    // 남-서
+    9:'M0,50 A50,50 0 0 0 50,0'        // 서-북
+  };
+  const MG_SHAPE_NAME = {10:'가로 직선', 5:'세로 직선', 3:'곡선 (위·오른쪽)', 6:'곡선 (오른쪽·아래)', 12:'곡선 (아래·왼쪽)', 9:'곡선 (왼쪽·위)'};
+  const MG_COL = {
+    station:{rail:'#f0d48a', tie:'#7d6636', bg:'#2c2540'},
+    red:{rail:'#e8637a', tie:'#6d3040', bg:'#2a2133'},
+    blue:{rail:'#5db3e8', tie:'#2b5471', bg:'#222338'},
+    plain:{rail:'#cfc7b4', tie:'#6a6254', bg:'#262034'},
+    draft:{rail:'#f0d48a', tie:'#8a7340', bg:'#38305a'}
+  };
+  function mgTrackPath(mask){
+    if(mask===10) return 'M0,50 L100,50';
+    if(mask===5) return 'M50,0 L50,100';
+    return MG_ARC[mask] || 'M0,50 L100,50';
+  }
+  function mgTileSvg(mask, kind){
+    const c = MG_COL[kind] || MG_COL.plain, d = mgTrackPath(mask);
+    let extra = '';
+    if(kind==='station'){
+      extra = '<rect x="27" y="12" width="46" height="21" rx="4" fill="#f0d48a" stroke="#7d6636" stroke-width="1.5"/>'+
+              '<text x="50" y="28" text-anchor="middle" font-size="15" font-weight="900" fill="#120f1a" font-family="Noto Serif KR,serif">역</text>';
+    }
+    return '<svg viewBox="0 0 100 100" aria-hidden="true">'+
+      '<rect x="1" y="1" width="98" height="98" rx="10" fill="'+c.bg+'" stroke="rgba(201,162,78,.28)" stroke-width="2"/>'+
+      '<path d="'+d+'" fill="none" stroke="'+c.tie+'" stroke-width="32" stroke-dasharray="4 10"/>'+
+      '<path d="'+d+'" fill="none" stroke="'+c.rail+'" stroke-width="20"/>'+
+      '<path d="'+d+'" fill="none" stroke="'+c.bg+'" stroke-width="11"/>'+
+      extra+'</svg>';
+  }
+
+  function mgBuildPalette(){
+    const box = $('#mr-palette');
+    box.innerHTML = '';
+    MR.SHAPES.forEach(mask=>{
+      const b = document.createElement('button');
+      b.className = 'mr-shape-btn';
+      b.dataset.mask = mask;
+      b.disabled = true;
+      b.setAttribute('aria-label', MG_SHAPE_NAME[mask]);
+      b.title = MG_SHAPE_NAME[mask];
+      b.innerHTML = mgTileSvg(mask,'draft');
+      b.addEventListener('click', ()=> mgSetSelMask(mask));
+      box.appendChild(b);
+    });
+  }
+
+  /* =====================================================
+     행동 가능 여부
+  ===================================================== */
+  function mgCanAct(){
+    if(MG.over || !MG.cells) return false;
+    if(MG.mode==='ai' && MG.turn===MG.aiOwner) return false;
+    // 온라인: 내 차례이기만 하면 둘 수 있다. 상대 접속 표시(connected)가 잠깐 틀려도 내 수가 막히지 않게 하고,
+    // 상대가 정말 나가 있으면 상대 차례의 제한 시간이 지나 무작위 수가 대신 놓이면서 판이 계속 진행된다.
+    if(MG.mode==='online' && MG.turn!==MG.online.myColor) return false;
+    return true;
+  }
+
+  /* =====================================================
+     보드 그리기
+  ===================================================== */
+  // 지금 손에 든 타일에 칸 k 를 더해도 규칙(1~3개·일렬·연속·기존 타일에 맞닿음)을 지키는가
+  function mgDraftLegalCell(k){
+    if(MG.cells.has(k) || mgDraftIndex(k)>=0) return false;
+    if(MG.draft.length>=3) return false;
+    return MR.validate(MG.cells, mgDraftTiles().concat([[k,10]]))===null;
+  }
+
+  function mgWhyIllegal(k){
+    if(!MR.inBounds(k)) return '더 이상 놓을 수 없는 위치입니다.';
+    if(mgRem()-MG.draft.length<=0) return '남은 타일이 없습니다.';
+    if(MG.draft.length>=3) return '한 번에 최대 3개까지 놓을 수 있어요.';
+    const e = MR.validate(MG.cells, mgDraftTiles().concat([[k,10]]));
+    if(e==='adjacent') return '기존 타일의 상하좌우에 맞닿게 놓아야 해요.';
+    if(e==='line' || e==='gap') return '여러 개는 나란히 일렬로 붙여서 놓아야 해요.';
+    return '여기에는 놓을 수 없어요.';
+  }
+
+  // 새 타일의 처음 모양: 이웃 레일이 이 칸을 향해 열려 있으면 곧게 이어 붙이고, 아니면 줄 방향 직선
+  function mgDefaultMask(k){
+    const open = [];
+    for(let d=0; d<4; d++){
+      const nk = k + MR.DK[d];
+      let v = MG.cells.get(nk);
+      if(v===undefined){ const di = mgDraftIndex(nk); if(di>=0) v = MG.draft[di].mask; }
+      if(v!==undefined && ((v&15) & (1<<MR.opp(d)))) open.push(d);
+    }
+    if(open.length===1) return (1<<open[0]) | (1<<MR.opp(open[0]));
+    if(open.length>=2){
+      const m = (1<<open[0]) | (1<<open[1]);
+      return MR.SHAPES.indexOf(m)>=0 ? m : 10;
+    }
+    if(MG.draft.length>0) return MR.KY(k)===MR.KY(MG.draft[0].k) ? 10 : 5;
+    return 10;
+  }
+
+  function mgRenderBoard(){
+    const board = $('#mr-board');
+    let minX=0, maxX=1, minY=0, maxY=0;
+    const grow = k=>{ const x=MR.KX(k), y=MR.KY(k); if(x<minX)minX=x; if(x>maxX)maxX=x; if(y<minY)minY=y; if(y>maxY)maxY=y; };
+    MG.cells.forEach((v,k)=>grow(k));
+    MG.draft.forEach(d=>grow(d.k));
+    minX = Math.max(minX-MG_MARGIN, MR.LIMX[0]); maxX = Math.min(maxX+MG_MARGIN, MR.LIMX[1]);
+    minY = Math.max(minY-MG_MARGIN, MR.LIMY[0]); maxY = Math.min(maxY+MG_MARGIN, MR.LIMY[1]);
+    const cols = maxX-minX+1;
+    board.style.gridTemplateColumns = 'repeat('+cols+',minmax(0,1fr))';
+    board.style.minWidth = (cols*28)+'px';
+    const canAct = mgCanAct();
+    const winAll = MG.over && MG.endReason==='complete';
+    let html = '';
+    for(let y=minY; y<=maxY; y++){
+      for(let x=minX; x<=maxX; x++){
+        const k = MR.K(x,y), v = MG.cells.get(k);
+        let cls = 'mr-cell', inner = '', attrs = '';
+        if(v!==undefined){
+          cls += ' has-tile' + (MG.lastNew.has(k)?' new-tile':'') + (winAll?' win-cell':'');
+          inner = mgTileSvg(v&15, (v&16)?'station':((v&32)?'red':((v&64)?'blue':'plain')));
+        } else {
+          const di = mgDraftIndex(k);
+          if(di>=0){
+            cls += ' has-tile ghost' + (di===MG.sel?' sel':'');
+            inner = mgTileSvg(MG.draft[di].mask, 'draft');
+            attrs = ' role="button" tabindex="0" aria-label="놓을 타일"';
+          } else if(canAct && mgDraftLegalCell(k)){
+            cls += ' legal';
+            attrs = ' role="button" tabindex="0" aria-label="놓을 수 있는 칸"';
+          }
+        }
+        html += '<div class="'+cls+'" data-k="'+k+'"'+attrs+'>'+inner+'</div>';
+      }
+    }
+    board.innerHTML = html;
+    mgFocusBoard();
+    MG.lastNew = new Set();   // 새 타일 애니메이션은 한 번만
+  }
+
+  // 좁은 화면에서 보드가 가로로 넘칠 때: 방금 놓은(또는 손에 든) 타일과 그 둘레 3칸이 항상 보이도록 스크롤을 맞춘다
+  function mgFocusBoard(){
+    try{
+      const board = $('#mr-board'), frame = board.parentElement;
+      if(!frame || !frame.clientWidth || frame.scrollWidth <= frame.clientWidth+1) return;
+      let ks = [];
+      if(MG.draft.length) ks = MG.draft.map(d=>d.k);
+      else if(MG.lastNew.size) ks = Array.from(MG.lastNew);
+      if(!ks.length) return;
+      const fr = frame.getBoundingClientRect();
+      let lo = Infinity, hi = -Infinity;
+      ks.forEach(k=>{
+        const el = board.querySelector('[data-k="'+k+'"]');
+        if(!el) return;
+        const r = el.getBoundingClientRect();
+        lo = Math.min(lo, r.left - fr.left + frame.scrollLeft);
+        hi = Math.max(hi, r.right - fr.left + frame.scrollLeft);
+      });
+      if(lo===Infinity) return;
+      const cw = board.firstElementChild ? board.firstElementChild.getBoundingClientRect().width : 28;
+      const pad = cw*MG_MARGIN;
+      if(lo-pad < frame.scrollLeft) frame.scrollLeft = Math.max(0, lo-pad);
+      else if(hi+pad > frame.scrollLeft+frame.clientWidth) frame.scrollLeft = hi+pad-frame.clientWidth;
+    }catch(e){}
+  }
+
+  function mgRenderSupply(){
+    const rem = mgRem();
+    let h = '<span class="mr-supply-label">남은 타일 <b>'+rem+'</b></span>';
+    for(let i=0; i<MR.TRACKS; i++) h += '<i class="mr-chip'+(i>=rem?' used':'')+'"></i>';
+    $('#mr-supply').innerHTML = h;
+  }
+
+  function mgUpdateUI(){
+    const myC = mgMyColor(), opC = OPP[myC];
+    let nameMe, nameOpp;
+    if(MG.mode==='online'){ nameMe = MG.online.playerName||'나'; nameOpp = MG.online.opponentName||'상대'; }
+    else if(MG.mode==='ai'){ nameMe = '나'; nameOpp = 'AI'; }
+    else { nameMe = '루비'; nameOpp = '사파이어'; }
+    $('#mr-name-me').textContent = nameMe;
+    $('#mr-name-opp').textContent = nameOpp;
+    $('#mr-side-me .dot').className = 'dot '+(myC==='red'?'ruby':'sapphire');
+    $('#mr-side-opp .dot').className = 'dot '+(opC==='red'?'ruby':'sapphire');
+    $('#mr-side-me').classList.toggle('turn-on', !MG.over && MG.turn===myC);
+    $('#mr-side-opp').classList.toggle('turn-on', !MG.over && MG.turn===opC);
+
+    const rem = mgRem();
+    const isAiTurn = MG.mode==='ai' && MG.turn===MG.aiOwner && !MG.over;
+    $('#mr-ai-thinking').classList.toggle('show', isAiTurn);
+
+    let html, alert = false;
+    if(MG.over){
+      html = '게임 종료 — '+mgB(MG.winner,'subj')+' 승리했습니다.';
+    } else if(MG.phase==='challenge'){
+      alert = true;
+      html = mgB(MG.challenger,'subj')+' 「불가능!」을 선언했습니다.<br>'+mgB(OPP[MG.challenger],'topic')+' 남은 타일 <b>'+rem+'개</b>로 순환선을 완성해야 합니다.';
+    } else {
+      html = mgB(MG.turn,'poss')+' 차례입니다 · 남은 타일 <b>'+rem+'개</b>';
+    }
+    const banner = $('#mr-banner');
+    banner.innerHTML = html;
+    banner.classList.toggle('alert', alert);
+
+    const canAct = mgCanAct();
+    const draftOk = canAct && MG.draft.length>0 && MR.validate(MG.cells, mgDraftTiles())===null;
+    const inChallenge = MG.phase==='challenge' && !MG.over;
+    $('#btn-mr-undo').disabled = !(canAct && MG.draft.length>0);
+    $('#btn-mr-confirm').disabled = !draftOk;
+    $('#btn-mr-confirm').textContent = MG.draft.length ? '배치 확정 ('+MG.draft.length+'개)' : '배치 확정';
+    $('#btn-mr-declare').style.display = inChallenge ? 'none' : '';
+    $('#btn-mr-giveup').style.display = inChallenge ? '' : 'none';
+    $('#btn-mr-declare').disabled = !(canAct && MG.phase==='play');
+    $('#btn-mr-giveup').disabled = !(canAct && inChallenge);
+    if(!MG._armed.declare) $('#btn-mr-declare').textContent = '불가능!';
+    if(!MG._armed.giveup) $('#btn-mr-giveup').textContent = '완성 포기';
+
+    const selTile = MG.draft[MG.sel];
+    $$('#mr-palette .mr-shape-btn').forEach(b=>{
+      b.disabled = !(canAct && selTile);
+      b.classList.toggle('on', !!selTile && selTile.mask===+b.dataset.mask);
+    });
+
+    let hint = '';
+    if(MG.mode==='online' && !MG.over && !MG.online.connected && !canAct) hint = '상대 연결이 끊겼습니다. 돌아올 때까지 기다려 주세요. (제한 시간이 지나면 무작위 타일이 대신 놓입니다)';
+    else if(canAct && MG.phase==='play') hint = '빈 칸을 눌러 타일을 놓으세요 (1~3개, 일렬). 놓은 타일을 다시 누르거나 아래 모양 버튼으로 직선·곡선과 방향을 바꿉니다.';
+    else if(canAct && inChallenge) hint = '남은 타일로 순환선을 완성하세요. 여러 번 나눠 놓아도 됩니다. 완성하지 못하면 패배합니다.';
+    $('#mr-hint').textContent = hint;
+  }
+
+  function mgRenderAll(){
+    mgRenderBoard();
+    mgRenderSupply();
+    mgUpdateUI();
+    mgUpdateTimerRing();
+  }
+
+  /* =====================================================
+     손에 든 타일 다루기
+  ===================================================== */
+  function mgOnCell(k){
+    if(!mgCanAct()) return;
+    const di = mgDraftIndex(k);
+    if(di>=0){
+      if(MG.sel===di){   // 이미 고른 타일을 다시 누르면 모양이 한 칸씩 바뀐다
+        const i = MR.SHAPES.indexOf(MG.draft[di].mask);
+        MG.draft[di].mask = MR.SHAPES[(i+1)%MR.SHAPES.length];
+      } else MG.sel = di;
+      Sound.select(); mgRenderAll(); return;
+    }
+    if(MG.cells.has(k)){ Sound.invalid(); return; }
+    if(!mgDraftLegalCell(k)){ Sound.invalid(); showToast(mgWhyIllegal(k)); return; }
+    MG.draft.push({k:k, mask:mgDefaultMask(k)});
+    MG.sel = MG.draft.length-1;
+    Sound.select(); mgRenderAll();
+  }
+
+  function mgSetSelMask(mask){
+    if(!mgCanAct() || MG.sel<0 || !MG.draft[MG.sel]) return;
+    MG.draft[MG.sel].mask = mask;
+    Sound.select(); mgRenderAll();
+  }
+
+  function mgUndo(){
+    if(!mgCanAct() || !MG.draft.length) return;
+    MG.draft.pop();
+    MG.sel = MG.draft.length-1;
+    Sound.select(); mgRenderAll();
+  }
+
+  function mgConfirm(){
+    if(!mgCanAct() || !MG.draft.length) return;
+    const tiles = mgDraftTiles();
+    if(MR.validate(MG.cells, tiles)!==null){ Sound.invalid(); showToast('이 배치는 놓을 수 없어요.'); return; }
+    MG.draft = []; MG.sel = -1;
+    if(MG.mode==='online'){ mgCommitOnlineMove(tiles); mgRenderAll(); return; }
+    mgApplyMove(tiles);
+  }
+
+  /* 한 번 누르면 확인 문구로 바뀌고, 4초 안에 한 번 더 누르면 실행 (실수로 선언·포기하는 것을 막는다) */
+  function mgArm(key, btnSel, armedText, normalText, fire){
+    if(!MG._armed[key]){
+      MG._armed[key] = true;
+      $(btnSel).textContent = armedText;
+      clearTimeout(MG._armTimers[key]);
+      MG._armTimers[key] = setTimeout(()=> mgDisarm(key, btnSel, normalText), 4000);
+      return;
+    }
+    mgDisarm(key, btnSel, normalText);
+    fire();
+  }
+  function mgDisarm(key, btnSel, normalText){
+    MG._armed[key] = false;
+    clearTimeout(MG._armTimers[key]);
+    const b = $(btnSel);
+    if(b) b.textContent = normalText;
+  }
+  function mgDisarmAll(){
+    mgDisarm('declare','#btn-mr-declare','불가능!');
+    mgDisarm('giveup','#btn-mr-giveup','완성 포기');
+  }
+
+  function mgOnDeclare(){
+    if(!mgCanAct() || MG.phase!=='play') return;
+    mgArm('declare','#btn-mr-declare','정말 불가능? 한 번 더 누르세요','불가능!', ()=>{
+      if(!mgCanAct() || MG.phase!=='play') return;
+      if(MG.mode==='online') mgDeclareOnline(); else mgDoDeclare(MG.turn);
+    });
+  }
+  function mgOnGiveUp(){
+    if(!mgCanAct() || MG.phase!=='challenge') return;
+    mgArm('giveup','#btn-mr-giveup','정말 포기? 한 번 더 누르세요','완성 포기', ()=>{
+      if(!mgCanAct() || MG.phase!=='challenge') return;
+      if(MG.mode==='online') mgGiveUpOnline(); else mgEnd(MG.challenger,'giveup');
+    });
+  }
+
+  /* =====================================================
+     진행 (2인 대결 · AI 대결)
+  ===================================================== */
+  function mgApplyMove(tiles){
+    const mover = MG.turn;
+    MG.cells = MR.applyTiles(MG.cells, tiles, mgOwnerFlag(mover));
+    MG.lastNew = new Set(tiles.map(t=>t[0]));
+    MG.draft = []; MG.sel = -1;
+    Sound.place();
+    if(MR.complete(MG.cells)){ mgEnd(mover,'complete'); return; }
+    if(MG.phase==='challenge'){
+      // 도전 중에는 차례도 시간도 그대로 — 타일이 바닥났는데 미완성이면 도전 실패
+      if(mgRem()===0){ mgEnd(MG.challenger,'challenge-fail'); return; }
+      mgRenderAll(); return;
+    }
+    // 타일이 바닥났는데 미완성: 다음 사람이 「불가능!」을 선언하면 이기는 상황이므로 바로 결판낸다
+    if(mgRem()===0){ mgEnd(OPP[mover],'exhausted'); return; }
+    MG.turn = OPP[mover];
+    Sound.turn();
+    mgStartTimer();
+    mgRenderAll();
+    mgMaybeTriggerAi();
+  }
+
+  function mgDoDeclare(by){
+    MG.draft = []; MG.sel = -1;
+    Sound.timeout();
+    if(mgRem()===0){ mgEnd(by,'challenge-fail'); return; }
+    MG.phase = 'challenge'; MG.challenger = by; MG.turn = OPP[by];
+    showToast(mgPart(by,'subj')+' 「불가능!」을 선언했습니다.');
+    mgStartTimer();
+    mgRenderAll();
+    mgMaybeTriggerAi();   // AI가 도전을 받은 경우
+  }
+
+  function mgEnd(winner, reason){
+    MG.endPhase = MG.phase;
+    MG.over = true; MG.winner = winner; MG.endReason = reason;
+    MG._aiToken++;
+    mgStopTimer();
+    mgDisarmAll();
+    mgRenderAll();
+    Sound.win();
+    setTimeout(()=>{ if(MG.over && MG.winner===winner) mgShowWinModal(); }, 850);
+  }
+
+  function mgEndText(){
+    switch(MG.endReason){
+      case 'complete': return MG.endPhase==='challenge' ? '불가능 선언을 받았지만 남은 타일로 순환선을 완성했습니다.' : '마지막 타일을 놓아 순환선을 완성했습니다.';
+      case 'challenge-fail': return '불가능 선언이 맞았습니다. 남은 타일로는 순환선을 완성할 수 없었습니다.';
+      case 'giveup': return '순환선 완성을 포기했습니다. 불가능 선언이 인정되었습니다.';
+      case 'timeout': return '시간 안에 순환선을 완성하지 못했습니다.';
+      case 'exhausted': return '남은 타일이 없는데 순환선이 완성되지 않았습니다.';
+    }
+    return '';
+  }
+
+  function mgShowWinModal(){
+    currentGame = 'monorail';
+    const w = MG.winner;
+    $('#win-crest').className = 'win-crest '+(w==='red'?'red':'blue');
+    let title, tail = '';
+    if(MG.mode==='online') title = w===MG.online.myColor ? '승리했습니다!' : '패배했습니다';
+    else if(MG.mode==='ai'){
+      const aiWon = w===MG.aiOwner;
+      title = aiWon ? '패배했습니다' : '승리했습니다!';
+      tail = aiWon ? ' 다시 도전해보세요!' : ' 축하합니다, AI를 이겼습니다!';
+    } else title = (w==='red'?'루비 진영':'사파이어 진영')+' 승리!';
+    $('#win-title').textContent = title;
+    $('#win-sub').textContent = mgEndText()+tail;
+    openModal('#win-modal');
+  }
+
+  /* ---------- 타이머 ---------- */
+  function mgTimerMax(){ return MG.phase==='challenge' ? MG_CHALLENGE_SECONDS : MG_TURN_SECONDS; }
+  function mgStopTimer(){ if(MG.timerHandle){ clearInterval(MG.timerHandle); MG.timerHandle = null; } }
+  function mgUpdateTimerRing(){
+    const ring = $('#mr-timer');
+    const aiTurn = MG.mode==='ai' && MG.turn===MG.aiOwner;
+    ring.style.visibility = (MG.over || aiTurn) ? 'hidden' : 'visible';
+    const frac = Math.max(0, Math.min(1, MG.timeLeft/mgTimerMax()));
+    const arc = $('#mr-timer-arc');
+    arc.style.strokeDashoffset = (97.4*(1-frac)).toFixed(1);
+    arc.style.stroke = MG.timeLeft<=10 ? '#e8637a' : '#c9a24e';
+    $('#mr-timer-num').textContent = Math.ceil(MG.timeLeft);
+  }
+  function mgStartTimer(){
+    mgStopTimer();
+    if(MG.over){ mgUpdateTimerRing(); return; }
+    if(MG.mode==='online'){ mgTickOnline(); MG.timerHandle = setInterval(mgTickOnline, 200); return; }
+    MG.timeLeft = mgTimerMax();
+    mgUpdateTimerRing();
+    if(MG.mode==='ai' && MG.turn===MG.aiOwner) return;   // AI는 자체 지연으로 처리
+    MG.timerHandle = setInterval(()=>{
+      MG.timeLeft -= 1;
+      if(MG.timeLeft<=5 && MG.timeLeft>0) Sound.tick();
+      mgUpdateTimerRing();
+      if(MG.timeLeft<=0){ mgStopTimer(); mgHandleTimeout(); }
+    }, 1000);
+  }
+  function mgHandleTimeout(){
+    Sound.timeout();
+    MG.draft = []; MG.sel = -1;
+    if(MG.phase==='challenge'){
+      showToast('시간 초과! 순환선을 완성하지 못했습니다.');
+      mgEnd(MG.challenger,'timeout');
+      return;
+    }
+    const mv = MR.randomMove(MG.cells);
+    if(!mv){ mgEnd(OPP[MG.turn],'exhausted'); return; }
+    showToast('시간 초과! 무작위 타일이 자동으로 놓였습니다.');
+    mgApplyMove(mv.tiles);
+  }
+
+  /* ---------- AI ---------- */
+  function mgMaybeTriggerAi(){
+    if(MG.over || MG.mode!=='ai' || MG.turn!==MG.aiOwner) return;
+    const token = ++MG._aiToken;   // 새로 예약하면 이전 예약은 무효
+    setTimeout(()=>{ if(token===MG._aiToken) mgRunAi(); }, 650+Math.random()*850);
+  }
+  function mgRunAi(){
+    if(MG.over || MG.mode!=='ai' || MG.turn!==MG.aiOwner) return;
+    if(MG.phase==='challenge'){ mgRunAiChallenge(); return; }
+    const d = MR.aiTurn(MG.cells, MG.aiDifficulty, Math.random, 700);
+    if(!d || d.type==='declare'){ mgDoDeclare(MG.aiOwner); return; }
+    mgApplyMove(d.tiles);
+  }
+  // AI가 「불가능!」 선언을 받았을 때: 남은 타일로 완성하는 계획을 세워 한 수씩 놓는다 (못 찾으면 도전 실패)
+  function mgRunAiChallenge(){
+    const plan = MR.aiChallenge(MG.cells, MG.aiDifficulty, Math.random);
+    if(!plan || !plan.length){
+      showToast('AI가 순환선을 완성하지 못했습니다.');
+      mgEnd(MG.challenger,'challenge-fail');
+      return;
+    }
+    const token = ++MG._aiToken;
+    let i = 0;
+    const step = ()=>{
+      if(token!==MG._aiToken || MG.over) return;
+      mgApplyMove(plan[i].tiles.map(t=>[t[0],t[1]]));
+      i++;
+      if(!MG.over){
+        if(i<plan.length) setTimeout(step, 950);
+        else mgEnd(MG.challenger,'challenge-fail');   // 계획을 다 놓았는데도 미완성이면(방어 코드) 실패 처리
+      }
+    };
+    step();
+  }
+
+  /* ---------- 시작 / 리셋 ---------- */
+  let MG_lastFirst = null;
+  function mgPickFairFirst(){
+    // 처음 한 번만 무작위, 이후 판마다 선공을 번갈아 (이전 판에서 먼저 둔 쪽이 연달아 선공이 되지 않게)
+    MG_lastFirst = MG_lastFirst==null ? (Math.random()<0.5?'red':'blue') : OPP[MG_lastFirst];
+    return MG_lastFirst;
+  }
+  function mgResetGameState(first){
+    MG.cells = MR.newCells();
+    MG.first = first; MG.turn = first;
+    MG.phase = 'play'; MG.challenger = null;
+    MG.over = false; MG.winner = null; MG.endReason = null; MG.endPhase = 'play';
+    MG.draft = []; MG.sel = -1; MG.lastNew = new Set();
+    MG.timeLeft = MG_TURN_SECONDS;
+    MG._aiToken++;   // 이전 판에서 예약된 AI 수 무효화
+    mgStopTimer();
+    mgDisarmAll();
+  }
+  function mgStartGame(mode, difficulty){
+    currentGame = 'monorail';
+    MG.mode = mode;
+    MG.aiDifficulty = difficulty || 'normal';
+    MG.aiOwner = 'blue';
+    mgResetGameState(mgPickFairFirst());
+    showScreen('screen-game-mr');
+    mgRenderAll();
+    mgStartTimer();
+    mgMaybeTriggerAi();
+  }
+  function mgBackToMainMenu(){
+    mgStopTimer();
+    MG._aiToken++;   // 메뉴로 나간 뒤에 AI가 수를 두지 않도록
+    mgDisarmAll();
+    if(MG.mode==='online') mgLeaveOnlineRoom();
+    showScreen('screen-start-mr');
+    $('#diff-row-mr').classList.remove('active');
+    $('#online-row-mr').classList.remove('active');
+    $$('#diff-row-mr .diff-btn').forEach(b=>b.classList.remove('picked'));
+  }
+
+  /* ---------- 모노레일 온라인 대결 (Firebase Realtime Database) ----------
+     저장 경로: monoRooms/{방코드}
+       players: { red:{name,connected}, blue:{name,connected} }
+       state:   { status('waiting'|'playing'|'finished'), cells{"x,y":값}, turn, first, phase('play'|'challenge'),
+                  challenger, turnDeadline, winner, endReason, seq, last{by,type,tiles} }
+     모든 쓰기는 transaction 으로 하고, 수가 규칙에 맞는지·내 차례인지를 서버 값 기준으로 다시 확인한다. */
+  function mgRoomPath(code){ return 'monoRooms/'+code; }
+
+  // 새 판의 방 상태 (first = 먼저 두는 쪽)
+  function mgFreshState(first){
+    return {
+      status:'playing', cells:MR.toObj(MR.newCells()), turn:first, first:first,
+      phase:'play', challenger:null, turnDeadline:serverNow()+MG_TURN_SECONDS*1000,
+      winner:null, endReason:null, seq:0, last:null
+    };
+  }
+  function mgFinishState(st, winner, reason){
+    st.status = 'finished'; st.winner = winner; st.endReason = reason;
+    st.turn = null; st.turnDeadline = null;
+  }
+  function mgTilesForLog(tiles){ return tiles.map(t=>[MR.KX(t[0]), MR.KY(t[0]), t[1]&15]); }
+
+  async function mgCreateOnlineRoom(playerName){
+    if(!ensureFirebase()) throw new Error('FIREBASE_NOT_CONFIGURED');
+    for(let attempt=0; attempt<6; attempt++){
+      const code = generateRoomCode();
+      const ref = fbDb.ref(mgRoomPath(code));
+      const snap = await withTimeout(ref.once('value'), 10000);
+      if(!snap.exists()){
+        await withTimeout(ref.set({
+          createdAt: firebase.database.ServerValue.TIMESTAMP,
+          players:{ red:{ name:playerName, connected:true } },
+          state:{ status:'waiting', cells:MR.toObj(MR.newCells()), turn:null, first:'red', phase:'play', turnDeadline:null, winner:null, seq:0 }
+        }), 10000);
+        ref.child('players/red/connected').onDisconnect().set(false);
+        return code;
+      }
+    }
+    throw new Error('ROOM_CODE_EXHAUSTED');
+  }
+
+  // 연결이 끊겼다 돌아오면 "접속 중"을 다시 켜고 onDisconnect 예약을 다시 건다
+  reconnectHooks.push(()=>{
+    if(!MG.online.active || !MG.online.roomRef || !MG.online.myColor) return;
+    const flag = MG.online.roomRef.child('players/'+MG.online.myColor+'/connected');
+    flag.set(true).catch(()=>{});
+    flag.onDisconnect().set(false).catch(()=>{});
+  });
+
+  async function mgJoinOnlineRoom(codeRaw, playerName){
+    if(!ensureFirebase()) throw new Error('FIREBASE_NOT_CONFIGURED');
+    const code = codeRaw.toUpperCase().trim();
+    if(code.length!==4) throw new Error('INVALID_CODE');
+    const ref = fbDb.ref(mgRoomPath(code));
+    const snap = await withTimeout(ref.once('value'), 10000);
+    if(!snap.exists()) throw new Error('ROOM_NOT_FOUND');
+    const room = snap.val();
+    if(room.players && room.players.blue) throw new Error('ROOM_FULL');
+    if(!room.state || room.state.status!=='waiting') throw new Error('ROOM_ALREADY_STARTED');
+    // 동시에 두 명이 들어가도 한 명만 앉도록 빈 자리일 때만 들어간다 (transaction)
+    const seat = await withTimeout(ref.child('players/blue').transaction(cur=>{
+      if(cur!==null) return;                          // 이미 누가 앉았다 → 중단
+      return { name:playerName, connected:true };
+    }), 10000);
+    if(!seat.committed) throw new Error('ROOM_FULL');
+    ref.child('players/blue/connected').onDisconnect().set(false);
+    return code;
+  }
+
+  function mgTryStartRoomIfReady(code){
+    fbDb.ref(mgRoomPath(code)).transaction(room=>{
+      if(!room || !room.state) return room;
+      if(room.state.status!=='waiting') return room;                       // 이미 시작됨 → 그대로
+      if(!room.players || !room.players.red || !room.players.blue) return room;
+      room.state = mgFreshState(Math.random()<0.5 ? 'red' : 'blue');
+      return room;
+    }).catch(e=>console.warn('mono room start failed', e));
+  }
+
+  /* 내 수 확정 */
+  function mgCommitOnlineMove(tiles){
+    if(!MG.online.roomRef) return;
+    const me = MG.online.myColor;
+    MG.online.roomRef.transaction(room=>{
+      if(!room || !room.state || room.state.status!=='playing') return room;
+      const st = room.state;
+      if(st.turn!==me) return;                            // 내 차례가 아님 → 중단
+      const cells = MR.fromObj(st.cells);
+      if(MR.validate(cells, tiles)!==null) return;        // 규칙에 어긋남 → 중단
+      const nc = MR.applyTiles(cells, tiles, mgOwnerFlag(me));
+      st.cells = MR.toObj(nc);
+      st.seq = (st.seq||0)+1;
+      st.last = {by:me, type:'move', tiles:mgTilesForLog(tiles)};
+      if(MR.complete(nc)){ mgFinishState(st, me, 'complete'); return room; }
+      if(st.phase==='challenge'){
+        // 도전 중에는 차례와 마감 시각을 그대로 두고, 타일이 바닥났는데 미완성이면 도전 실패
+        if(MR.remainingOf(nc)===0) mgFinishState(st, st.challenger, 'challenge-fail');
+        return room;
+      }
+      if(MR.remainingOf(nc)===0){ mgFinishState(st, OPP[me], 'exhausted'); return room; }
+      st.turn = OPP[me];
+      st.turnDeadline = serverNow()+MG_TURN_SECONDS*1000;
+      return room;
+    }, (err, committed)=>{
+      if(err || !committed) showToast('수를 놓지 못했습니다. 다시 시도해주세요.');
+    });
+  }
+
+  /* 「불가능!」 선언 */
+  function mgDeclareOnline(){
+    if(!MG.online.roomRef) return;
+    const me = MG.online.myColor;
+    MG.online.roomRef.transaction(room=>{
+      if(!room || !room.state || room.state.status!=='playing') return room;
+      const st = room.state;
+      if(st.turn!==me || st.phase==='challenge') return;
+      st.seq = (st.seq||0)+1;
+      st.last = {by:me, type:'declare'};
+      if(MR.remainingOf(MR.fromObj(st.cells))===0){ mgFinishState(st, me, 'challenge-fail'); return room; }
+      st.phase = 'challenge'; st.challenger = me; st.turn = OPP[me];
+      st.turnDeadline = serverNow()+MG_CHALLENGE_SECONDS*1000;
+      return room;
+    }, (err, committed)=>{
+      if(err || !committed) showToast('선언하지 못했습니다. 다시 시도해주세요.');
+    });
+  }
+
+  /* 도전 받은 쪽이 완성을 포기 */
+  function mgGiveUpOnline(){
+    if(!MG.online.roomRef) return;
+    const me = MG.online.myColor;
+    MG.online.roomRef.transaction(room=>{
+      if(!room || !room.state || room.state.status!=='playing') return room;
+      const st = room.state;
+      if(st.phase!=='challenge' || st.turn!==me) return;
+      st.seq = (st.seq||0)+1;
+      st.last = {by:me, type:'giveup'};
+      mgFinishState(st, st.challenger, 'giveup');
+      return room;
+    }, (err, committed)=>{
+      if(err || !committed) showToast('처리하지 못했습니다. 다시 시도해주세요.');
+    });
+  }
+
+  /* 시간 초과: 보통 수는 무작위 타일이 자동으로 놓이고, 완성 도전 중이면 도전 실패 */
+  function mgAttemptOnlineTimeoutPass(){
+    if(!MG.online.roomRef || MG.over) return;
+    let did = false;
+    MG.online.roomRef.transaction(room=>{
+      did = false;
+      if(!room || !room.state || room.state.status!=='playing') return room;
+      const st = room.state;
+      if(!st.turnDeadline || serverNow()<st.turnDeadline-200) return room;
+      const cells = MR.fromObj(st.cells);
+      const mover = st.turn;
+      st.seq = (st.seq||0)+1;
+      if(st.phase==='challenge'){
+        st.last = {by:mover, type:'timeout'};
+        mgFinishState(st, st.challenger, 'timeout');
+        did = true; return room;
+      }
+      const mv = MR.randomMove(cells);
+      if(!mv){
+        st.last = {by:mover, type:'timeout'};
+        mgFinishState(st, OPP[mover], 'exhausted');
+        did = true; return room;
+      }
+      const nc = MR.applyTiles(cells, mv.tiles, mgOwnerFlag(mover));
+      st.cells = MR.toObj(nc);
+      st.last = {by:mover, type:'auto', tiles:mgTilesForLog(mv.tiles)};
+      if(MR.complete(nc)) mgFinishState(st, mover, 'complete');
+      else if(MR.remainingOf(nc)===0) mgFinishState(st, OPP[mover], 'exhausted');
+      else { st.turn = OPP[mover]; st.turnDeadline = serverNow()+MG_TURN_SECONDS*1000; }
+      did = true;
+      return room;
+    }, (err)=>{
+      if(err) console.error('mono timeout transaction failed', err);
+      // 다른 기기가 먼저 처리했거나 아직 마감 전이면 상태가 안 바뀌어 새 알림이 오지 않으므로, 타이머를 다시 켠다
+      if(!did) setTimeout(()=>{ if(!MG.over && MG.mode==='online' && MG.online.roomRef) mgStartTimer(); }, 600);
+    });
+  }
+
+  function mgTickOnline(){
+    if(MG.over || !MG.online.turnDeadline){ mgUpdateTimerRing(); return; }
+    const prevCeil = Math.ceil(MG.timeLeft||0);
+    const remain = Math.max(0, (MG.online.turnDeadline-serverNow())/1000);
+    MG.timeLeft = remain;
+    const nowCeil = Math.ceil(remain);
+    if(nowCeil<=5 && nowCeil>0 && nowCeil!==prevCeil && MG.turn===MG.online.myColor) Sound.tick();
+    mgUpdateTimerRing();
+    if(remain<=0){ mgStopTimer(); mgAttemptOnlineTimeoutPass(); }
+  }
+
+  /* 다시 대결: 끝난 판일 때만 새 판으로 (두 사람이 동시에 눌러도 한 번만 시작), 선공은 지난 판과 반대 */
+  function mgRequestOnlineRematch(){
+    if(!MG.online.roomRef) return;
+    MG.online.roomRef.transaction(room=>{
+      if(!room || !room.state) return room;
+      if(room.state.status!=='finished') return room;
+      room.state = mgFreshState(OPP[room.state.first||'red']);
+      return room;
+    }).catch(e=>console.error('mono rematch failed', e));
+  }
+
+  function mgAttachRoomListener(code){
+    mgDetachRoomListener();
+    const ref = fbDb.ref(mgRoomPath(code));
+    MG.online.roomRef = ref;
+    const cb = snap => mgHandleRoomUpdate(snap.val());
+    ref.on('value', cb, err=>console.error('mono room listener error', err));
+    MG.online.listenerRef = {ref, cb};
+  }
+  function mgDetachRoomListener(){
+    if(MG.online.listenerRef){
+      MG.online.listenerRef.ref.off('value', MG.online.listenerRef.cb);
+      MG.online.listenerRef = null;
+    }
+  }
+
+  function mgHandleRoomUpdate(room){
+    if(!room || !room.state){
+      if(MG.online.enteredPlaying && !MG.over) showToast('방 연결이 종료되었습니다.');
+      return;
+    }
+    const oppColor = OPP[MG.online.myColor];
+    const oppData = room.players && room.players[oppColor];
+    MG.online.opponentName = oppData ? oppData.name : MG.online.opponentName;
+    MG.online.connected = !!(oppData && oppData.connected);
+    MG.online.lastRoom = room;
+
+    if(room.state.status==='waiting'){
+      mgUpdateWaitingScreen(room);
+      if(room.players && room.players.red && room.players.blue) mgTryStartRoomIfReady(MG.online.roomCode);
+      return;
+    }
+    if(!MG.online.enteredPlaying){
+      MG.online.enteredPlaying = true;
+      mgEnterOnlineGameScreen(room);
+      return;
+    }
+    mgUpdateOnlineStatusPill();
+    mgApplyRemoteRoomState(room, false);
+  }
+
+  function mgUpdateWaitingScreen(room){
+    $('#waiting-room-code-mr').textContent = MG.online.roomCode||'';
+    const guestName = room.players && room.players.blue && room.players.blue.name;
+    $('#waiting-status-text-mr').textContent = guestName ? (guestName+'님이 입장했습니다. 대결을 준비하는 중...') : '상대를 기다리는 중...';
+  }
+
+  function mgUpdateOnlineStatusPill(){
+    const pill = $('#online-status-pill-mr');
+    if(MG.mode!=='online'){ pill.classList.remove('show'); return; }
+    pill.classList.add('show');
+    pill.classList.toggle('warn', !MG.online.connected);
+    pill.textContent = MG.online.connected ? '🟢 연결됨' : '🟡 상대 연결 끊김';
+  }
+
+  function mgEnterOnlineGameScreen(room){
+    mgResetGameState(room.state.first||'red');
+    closeModal('#win-modal');
+    MG.online.recordWriteAttempted = false;
+    MG.online.lastSeq = undefined;
+    const oppColor = OPP[MG.online.myColor];
+    const oppName = (room.players && room.players[oppColor] && room.players[oppColor].name) || '상대';
+    MG.online.opponentName = oppName;
+    showScreen('screen-game-mr');
+    mgUpdateOnlineStatusPill();
+    mgRenderAll();
+    showCoinFlip(room.state.first||room.state.turn||'red', MG.online.myColor, ()=>{
+      if(!MG.online.roomRef) return;   // 동전 던지는 중에 나갔다면 중단
+      mgApplyRemoteRoomState(MG.online.lastRoom||room, true);   // 그 사이 바뀐 가장 최근 상태로 맞춘다
+    }, oppName);
+  }
+
+  function mgApplyRemoteRoomState(room, isInitial){
+    const st = room.state;
+    if(st.status==='playing' && MG.over){   // 다시 대결이 시작됨 → 지난 판의 표시를 모두 지운다
+      MG.over = false; MG.winner = null; MG.endReason = null; MG.endPhase = 'play';
+      MG.draft = []; MG.sel = -1;
+      closeModal('#win-modal');
+      MG.online.recordWriteAttempted = false;
+      MG.online.lastSeq = undefined;
+    }
+    const seq = st.seq||0;
+    const changed = seq!==MG.online.lastSeq;
+    MG.cells = MR.fromObj(st.cells);
+    if(st.turn) MG.turn = st.turn;
+    MG.phase = st.phase||'play';
+    MG.challenger = st.challenger||null;
+    MG.first = st.first||MG.first;
+    MG.online.turnDeadline = st.turnDeadline||null;
+    if(changed){
+      MG.draft = []; MG.sel = -1; MG.lastNew = new Set();
+      const last = st.last;
+      if(!isInitial && MG.online.lastSeq!==undefined && last){
+        mgArr(last.tiles).forEach(t=>MG.lastNew.add(MR.K(t[0],t[1])));
+        if(last.type==='declare'){
+          Sound.timeout();
+          showToast(mgPart(last.by,'subj')+' 「불가능!」을 선언했습니다.');
+        } else if(last.type==='move' || last.type==='auto'){
+          Sound.place();
+          if(last.type==='auto') showToast('시간 초과! 무작위 타일이 자동으로 놓였습니다.');
+        }
+      }
+      MG.online.lastSeq = seq;
+    }
+    mgRenderAll();
+    mgStartTimer();
+
+    if(st.status==='finished' && st.winner && !MG.over){
+      mgEnd(st.winner, st.endReason||'complete');
+      mgTryRecordOnlineResult(st.winner);
+    }
+  }
+
+  /* ---------- 전적 ---------- */
+  function mgTryRecordOnlineResult(winnerColor){
+    if(MG.online.recordWriteAttempted) return;
+    MG.online.recordWriteAttempted = true;
+    // 두 기기가 같은 결과를 각각 기록하면 승패가 2배로 쌓이므로 방장(루비)만 기록한다 (다른 게임과 동일)
+    if(MG.online.myColor!=='red') return;
+    const winnerName = winnerColor===MG.online.myColor ? MG.online.playerName : MG.online.opponentName;
+    const loserName = winnerColor===MG.online.myColor ? MG.online.opponentName : MG.online.playerName;
+    if(!winnerName || !loserName || !fbReady) return;
+    mgBumpRecord(winnerName, true);
+    mgBumpRecord(loserName, false);
+  }
+  function mgBumpRecord(name, isWin){
+    fbDb.ref('monoRecords/'+sanitizeKey(name)).transaction(cur=>{
+      cur = cur || { name:name, wins:0, losses:0 };
+      cur.name = name;
+      cur.wins = (cur.wins||0)+(isWin?1:0);
+      cur.losses = (cur.losses||0)+(isWin?0:1);
+      cur.lastPlayed = Date.now();
+      return cur;
+    }).catch(e=>console.warn('mono record write failed', e));
+  }
+
+  function mgLeaveOnlineRoom(){
+    if(MG.online.roomRef && MG.online.myColor){
+      MG.online.roomRef.child('players/'+MG.online.myColor+'/connected').set(false).catch(()=>{});
+    }
+    mgDetachRoomListener();
+    MG.online.active = false; MG.online.roomCode = null; MG.online.myColor = null;
+    MG.online.playerName = null; MG.online.opponentName = null; MG.online.roomRef = null;
+    MG.online.turnDeadline = null; MG.online.connected = false; MG.online.enteredPlaying = false;
+    MG.online.recordWriteAttempted = false; MG.online.lastRoom = null; MG.online.lastSeq = undefined;
+    $('#online-status-pill-mr').classList.remove('show');
+  }
+
+  function mgFriendlyOnlineError(e){
+    const msg = e && e.message || '';
+    if(/PERMISSION_DENIED|Permission denied|permission/i.test(msg)) return 'Firebase 방 생성 권한 오류: '+msg;
+    const map = {
+      FIREBASE_NOT_CONFIGURED:'Firebase 설정이 필요합니다. 파일 상단 firebaseConfig 값을 채워주세요.',
+      ROOM_NOT_FOUND:'해당 코드의 방을 찾을 수 없습니다.',
+      ROOM_FULL:'이미 인원이 가득 찬 방입니다.',
+      ROOM_ALREADY_STARTED:'이미 시작된 대결입니다.',
+      INVALID_CODE:'방 코드는 4자리입니다.',
+      ROOM_CODE_EXHAUSTED:'방 생성에 실패했습니다. 다시 시도해주세요.',
+      TIMEOUT:'Firebase 서버 응답이 없습니다. 인터넷 연결, databaseURL, Realtime Database 규칙(만료 여부)을 확인해주세요.'
+    };
+    return map[msg] || '연결 중 문제가 발생했습니다. 다시 시도해주세요.';
+  }
+
+  function mgOpenRecordsModal(){
+    openModal('#records-modal');
+    const name = MG.online.playerName || $('#input-name-mr').value.trim();
+    if(!ensureFirebase()){
+      $('#my-record-box').innerHTML = '<div class="my-record-stats">Firebase가 설정되지 않아 전적을 불러올 수 없습니다.</div>';
+      $('#leaderboard-list').innerHTML = '';
+      return;
+    }
+    if(name){
+      fbDb.ref('monoRecords/'+sanitizeKey(name)).once('value').then(snap=>{
+        const rec = snap.val();
+        if(rec){
+          const total = (rec.wins||0)+(rec.losses||0);
+          const rate = total ? Math.round((rec.wins||0)/total*100) : 0;
+          $('#my-record-box').innerHTML = `<div class="my-record-name">${escapeHtml(rec.name)}</div><div class="my-record-stats">${rec.wins||0}승 ${rec.losses||0}패 · 승률 ${rate}%</div>`;
+        } else {
+          $('#my-record-box').innerHTML = '<div class="my-record-stats">아직 기록된 대결이 없습니다.</div>';
+        }
+      }).catch(()=>{ $('#my-record-box').innerHTML = '<div class="my-record-stats">전적을 불러오지 못했습니다.</div>'; });
+    } else {
+      $('#my-record-box').innerHTML = '<div class="my-record-stats">이름을 입력하면 전적을 볼 수 있어요.</div>';
+    }
+    fbDb.ref('monoRecords').orderByChild('wins').limitToLast(10).once('value').then(snap=>{
+      const rows = []; snap.forEach(c=>{ rows.push(c.val()); }); rows.reverse();
+      $('#leaderboard-list').innerHTML = rows.map((r,i)=>{
+        const total = (r.wins||0)+(r.losses||0);
+        const rate = total ? Math.round((r.wins||0)/total*100) : 0;
+        return `<div class="lb-row"><span class="lb-rank">${i+1}</span><span class="lb-name">${escapeHtml(r.name)}</span><span class="lb-stats">${r.wins||0}승 ${r.losses||0}패 · ${rate}%</span></div>`;
+      }).join('') || '<div class="my-record-stats">아직 기록이 없습니다.</div>';
+    }).catch(()=>{ $('#leaderboard-list').innerHTML = ''; });
   }
 
   /* =====================================================
@@ -5276,7 +6788,7 @@
   // 소리 켜기/끄기: 네 게임의 버튼 아이콘을 항상 함께 바꾼다 (예전에는 결!합! 버튼 아이콘이 따로 놀았다)
   function toggleSound(){
     Sound.enabled = !Sound.enabled;
-    ['#btn-sound','#btn-sound-tj','#btn-sound-bw','#btn-sound-gh'].forEach(sel=>{
+    ['#btn-sound','#btn-sound-tj','#btn-sound-bw','#btn-sound-gh','#btn-sound-mr'].forEach(sel=>{
       const b = $(sel);
       if(b) b.textContent = Sound.enabled ? '🔊' : '🔇';
     });
@@ -5294,6 +6806,9 @@
     } else if(currentGame==='gyeolhap'){
       if(GH.mode==='online') ghRequestOnlineRematch();
       else ghStartGame(GH.mode, GH.aiDifficulty);
+    } else if(currentGame==='monorail'){
+      if(MG.mode==='online') mgRequestOnlineRematch();
+      else mgStartGame(MG.mode, MG.aiDifficulty);
     } else {
       if(S.mode==='online') requestOnlineRematch();
       else startGame(S.mode, S.aiDifficulty);
@@ -5304,6 +6819,7 @@
     if(currentGame==='twelve') tjBackToMainMenu();
     else if(currentGame==='blackwhite') bwBackToMainMenu();
     else if(currentGame==='gyeolhap') ghBackToMainMenu();
+    else if(currentGame==='monorail') mgBackToMainMenu();
     else backToMainMenu();
   });
 
@@ -5524,7 +7040,8 @@
       russian: $('#toggle-russian').checked,
       twelve: $('#toggle-twelve').checked,
       blackwhite: $('#toggle-bw').checked,
-      gyeolhap: $('#toggle-gh').checked
+      gyeolhap: $('#toggle-gh').checked,
+      monorail: $('#toggle-mr').checked
     };
     applyHubVisibility(cfg);
     if(!ensureFirebase()){
@@ -5620,6 +7137,108 @@
   $('#rules-modal-gh').addEventListener('click', e=>{ if(e.target.id==='rules-modal-gh') closeModal('#rules-modal-gh'); });
   $('#btn-back-gh').addEventListener('click', ghBackToMainMenu);
   $('#btn-sound-gh').addEventListener('click', toggleSound);
+
+  /* ---------- 모노레일 이벤트 바인딩 ---------- */
+  $('#hub-pick-mr').addEventListener('click', ()=>{ currentGame='monorail'; showScreen('screen-start-mr'); });
+  $('#btn-hub-from-start-mr').addEventListener('click', ()=> showScreen('screen-hub'));
+
+  $('#btn-mode-local-mr').addEventListener('click', ()=> mgStartGame('local'));
+  $('#btn-mode-ai-mr').addEventListener('click', ()=>{
+    $('#diff-row-mr').classList.add('active');
+    $('#online-row-mr').classList.remove('active');
+  });
+  $('#btn-mode-online-mr').addEventListener('click', ()=>{
+    $('#online-row-mr').classList.add('active');
+    $('#diff-row-mr').classList.remove('active');
+    $$('#diff-row-mr .diff-btn').forEach(b=>b.classList.remove('picked'));
+  });
+  $$('#diff-row-mr .diff-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      $$('#diff-row-mr .diff-btn').forEach(b=>b.classList.remove('picked'));
+      btn.classList.add('picked');
+      const diff = btn.dataset.diff;
+      setTimeout(()=> mgStartGame('ai', diff), 180);
+    });
+  });
+
+  function mgSetOnlineButtonsBusy(busy){
+    $('#btn-create-room-mr').disabled = busy;
+    $('#btn-join-room-mr').disabled = busy;
+  }
+  function mgShowOnlineError(msg){ $('#online-error-mr').textContent = msg; }
+
+  $('#btn-create-room-mr').addEventListener('click', async ()=>{
+    const name = $('#input-name-mr').value.trim();
+    if(!name){ mgShowOnlineError('이름을 입력해주세요.'); return; }
+    mgShowOnlineError('');
+    mgSetOnlineButtonsBusy(true);
+    try{
+      const code = await mgCreateOnlineRoom(name);
+      currentGame = 'monorail';
+      MG.mode = 'online';
+      MG.online.active = true; MG.online.roomCode = code; MG.online.myColor = 'red';
+      MG.online.playerName = name; MG.online.enteredPlaying = false;
+      $('#waiting-room-code-mr').textContent = code;
+      $('#waiting-status-text-mr').textContent = '상대를 기다리는 중...';
+      showScreen('screen-waiting-mr');
+      mgAttachRoomListener(code);
+    }catch(e){ mgShowOnlineError(mgFriendlyOnlineError(e)); }
+    mgSetOnlineButtonsBusy(false);
+  });
+
+  $('#btn-join-room-mr').addEventListener('click', async ()=>{
+    const name = $('#input-name-mr').value.trim();
+    const code = $('#input-room-code-mr').value.trim();
+    if(!name){ mgShowOnlineError('이름을 입력해주세요.'); return; }
+    if(!code){ mgShowOnlineError('방 코드를 입력해주세요.'); return; }
+    mgShowOnlineError('');
+    mgSetOnlineButtonsBusy(true);
+    try{
+      const joinedCode = await mgJoinOnlineRoom(code, name);
+      currentGame = 'monorail';
+      MG.mode = 'online';
+      MG.online.active = true; MG.online.roomCode = joinedCode; MG.online.myColor = 'blue';
+      MG.online.playerName = name; MG.online.enteredPlaying = false;
+      $('#waiting-room-code-mr').textContent = joinedCode;
+      $('#waiting-status-text-mr').textContent = '연결하는 중...';
+      showScreen('screen-waiting-mr');
+      mgAttachRoomListener(joinedCode);
+    }catch(e){ mgShowOnlineError(mgFriendlyOnlineError(e)); }
+    mgSetOnlineButtonsBusy(false);
+  });
+
+  $('#btn-cancel-waiting-mr').addEventListener('click', ()=>{
+    mgLeaveOnlineRoom();
+    showScreen('screen-start-mr');
+  });
+
+  // 보드: 칸 하나하나에 리스너를 달지 않고, 보드 전체에서 눌린 칸을 찾는다 (보드는 그릴 때마다 새로 만들어진다)
+  $('#mr-board').addEventListener('click', e=>{
+    const cell = e.target.closest('.mr-cell');
+    if(cell) mgOnCell(+cell.dataset.k);
+  });
+  $('#mr-board').addEventListener('keydown', e=>{
+    if(e.key!=='Enter' && e.key!==' ') return;
+    const cell = e.target.closest('.mr-cell');
+    if(cell){ e.preventDefault(); mgOnCell(+cell.dataset.k); }
+  });
+  $('#btn-mr-undo').addEventListener('click', mgUndo);
+  $('#btn-mr-confirm').addEventListener('click', mgConfirm);
+  $('#btn-mr-declare').addEventListener('click', mgOnDeclare);
+  $('#btn-mr-giveup').addEventListener('click', mgOnGiveUp);
+
+  $('#btn-records-mr').addEventListener('click', mgOpenRecordsModal);
+  $('#btn-records-ingame-mr').addEventListener('click', mgOpenRecordsModal);
+
+  $('#btn-rules-mr').addEventListener('click', ()=> openModal('#rules-modal-mr'));
+  $('#btn-rules-ingame-mr').addEventListener('click', ()=> openModal('#rules-modal-mr'));
+  $('#btn-close-rules-mr').addEventListener('click', ()=> closeModal('#rules-modal-mr'));
+  $('#rules-modal-mr').addEventListener('click', e=>{ if(e.target.id==='rules-modal-mr') closeModal('#rules-modal-mr'); });
+
+  $('#btn-back-mr').addEventListener('click', mgBackToMainMenu);
+  $('#btn-sound-mr').addEventListener('click', toggleSound);
+
+  mgBuildPalette();
 })();
 </script>
 </body>
