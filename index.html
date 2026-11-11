@@ -792,6 +792,21 @@
   #btn-mr-giveup:disabled{border-color:var(--bg-panel-edge); color:var(--ivory-dim);}
   .mr-hint{font-size:12px; color:var(--ivory-dim); text-align:center; max-width:460px; line-height:1.65; min-height:20px;}
 
+
+  /* ===== PC 화면 가운데 정렬 보정: 허브·각 게임 시작/대기 화면은 #screen-start 와 같은 방식으로 가운데에 놓는다 ===== */
+  #screen-hub, #screen-start-tj, #screen-waiting-tj, #screen-start-bw, #screen-pass-bw, #screen-start-gh, #screen-waiting-gh, #screen-start-mr, #screen-waiting-mr, #screen-waiting-bw{
+    align-items:center; justify-content:center; padding:32px 20px; text-align:center;
+  }
+  @media (max-width:520px){
+    #screen-hub, #screen-start-tj, #screen-waiting-tj, #screen-start-bw, #screen-pass-bw, #screen-start-gh, #screen-waiting-gh, #screen-start-mr, #screen-waiting-mr, #screen-waiting-bw{ padding:20px 12px; }
+  }
+  /* PC: 게임 선택 화면은 넓게 2열로 (카드 5개가 한 화면에 들어오도록) */
+  @media (min-width:900px){
+    .hub-frame{max-width:760px; padding:36px 32px 28px;}
+    .hub-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+    .hub-grid .hub-card{padding:20px 16px;}
+    .hub-grid .hub-card:last-child:nth-child(odd){grid-column:1 / -1;}
+  }
   /* ================= MODALS ================= */
   .modal-overlay{
     position:fixed; inset:0; background:rgba(6,5,10,.72);
